@@ -40,7 +40,7 @@ class HardwareImplementation(HardwareInterface.HardwareInterface):
         #         self._board_reed[i][j].pull = digitalio.Pull.UP
 
         # Initialize LED matrix
-        self._led_matrix = self.LedWrapper(matrix.MatrixBackpack16x8(tca[4]),
+        self._led_matrix = LedWrapper(matrix.MatrixBackpack16x8(tca[4]),
                                            MCP23017(tca[5], address=0x20))
         self._led_matrix.clear()
         self._led_matrix.clear()
