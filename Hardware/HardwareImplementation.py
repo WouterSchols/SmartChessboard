@@ -47,7 +47,6 @@ class HardwareImplementation(HardwareInterface.HardwareInterface):
     def mark_squares(self, matrix: List[List[bool]]):
         """ Marks square[file][rank] on the chessboard 0 <= file, column < 8 if square[file][rank] == True"""
         self._led_matrix.clear()
-        print(numpy.matrix(matrix))
         for file in range(8):
             for rank in range(8):
                 if matrix[file][rank]:
