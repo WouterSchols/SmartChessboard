@@ -94,31 +94,31 @@ class LedWrapper:
     def mark_square(self, column: int, row: int):
         """ Marks one square on the chessboard"""
         try:
-            self._led_matrix[column][row] = True
+            self._matrix[column][row] = True
             self._led_matrix[column][row + 1] = True
         except OSError:
             tries = 0
             while tries < 3:
                 try:
-                    self._led_matrix[column][row] = True
-                    self._led_matrix[column][row + 1] = True
+                    self._matrix[column][row] = True
+                    self._matrix[column][row + 1] = True
                     break
                 except OSError:
                     tries += 1
             if tries >= 3:
                 raise
 
-        self._led_matrix[column][row + 1] = True
+        self._matrix[column][row + 1] = True
         if column < 8:
             try:
-                self._led_matrix[column + 1][row] = True
-                self._led_matrix[column + 1][row + 1] = True
+                self._matrix[column + 1][row] = True
+                self._matrix[column + 1][row + 1] = True
             except OSError:
                 tries = 0
                 while tries < 3:
                     try:
-                        self._led_matrix[column + 1][row] = True
-                        self._led_matrix[column + 1][row + 1] = True
+                        self._matrix[column + 1][row] = True
+                        self._matrix[column + 1][row + 1] = True
                         break
                     except OSError:
                         tries += 1
