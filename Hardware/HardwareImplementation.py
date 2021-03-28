@@ -4,7 +4,7 @@ import board
 import busio
 import digitalio
 import adafruit_tca9548a
-import adafruit_ht16k33.matrix
+from adafruit_ht16k33 import matrix
 from adafruit_mcp230xx.mcp23017 import MCP23017
 
 class HardwareImplementation(HardwareInterface.HardwareInterface):
@@ -14,7 +14,7 @@ class HardwareImplementation(HardwareInterface.HardwareInterface):
         """ Set up hardware connection """
         i2c = busio.I2C(board.SCL, board.SDA)
         tca = adafruit_tca9548a.TCA9548A(i2c, address=0x71)
-        mcp = [adafruit_mcp230xx.mcp23017.MCP23017(tca[i], address=0x20) for i in range(4)]
+        mcp = [MCP23017(tca[i], address=0x20) for i in range(4)]
 
         self._board_reed = [[], [], [], [], [], [], [], []]
 
@@ -40,8 +40,9 @@ class HardwareImplementation(HardwareInterface.HardwareInterface):
         #         self._board_reed[i][j].pull = digitalio.Pull.UP
 
         # Initialize LED matrix
-        self._led_matrix = self.LedWrapper(adafruit_ht16k33.matrix.MatrixBackpack16x8(tca[4]),
-                                           adafruit_mcp230xx.mcp23017.MCP23017(tca[5], address=0x20))
+        self._led_matrix = self.LedWrapper(matrix.MatrixBackpack16x8(tca[4]),
+                                           MCP23017(tca[5], address=0x20))
+        self._led_matrix.clear()
         self._led_matrix.clear()
 
     def mark_squares(self, matrix: List[List[bool]]):
