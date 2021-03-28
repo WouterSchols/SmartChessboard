@@ -10,7 +10,8 @@ class EngineClient(Clients.PlayerClientInterface.PlayerClientInterface):
 
     def __init__(self):
         """ Creates engine, binary should be at Engine/BinaryDependencies.exe """
-        self._engine = chess.engine.SimpleEngine.popen_uci("Engine/BinaryDependencies.exe")
+        # self._engine = chess.engine.SimpleEngine.popen_uci("Engine/BinaryDependencies.exe")
+        self._engine = chess.engine.SimpleEngine.popen_uci("Engine/BinaryDependencies)
         self._board = chess.Board()
 
     # def __del__(self):
