@@ -95,14 +95,14 @@ class LedWrapper:
     def mark_square(self, file: int, rank: int):
         """ Marks one square on the chessboard"""
         try:
-            self._matrix[7 - file, rank] = True
-            self._matrix[7 - file, rank + 1] = True
+            self._matrix[rank, 7 - file] = True
+            self._matrix[rank + 1, 7 - rank] = True
         except OSError:
             tries = 0
             while tries < 3:
                 try:
-                    self._matrix[7 - file, rank] = True
-                    self._matrix[7 - file, rank + 1] = True
+                    self._matrix[rank, 7 - file] = True
+                    self._matrix[rank + 1, 7 - rank] = True
                     break
                 except OSError:
                     tries += 1
@@ -111,14 +111,14 @@ class LedWrapper:
 
         if file < 7:
             try:
-                self._matrix[7 - file - 1, rank] = True
-                self._matrix[7 - file - 1, rank + 1] = True
+                self._matrix[rank, 7 - file - 1] = True
+                self._matrix[rank + 1, 7 - rank - 1] = True
             except OSError:
                 tries = 0
                 while tries < 3:
                     try:
-                        self._matrix[7 - file - 1, rank] = True
-                        self._matrix[7 - file - 1, rank + 1] = True
+                        self._matrix[rank, 7 - file - 1] = True
+                        self._matrix[rank + 1, 7 - rank - 1] = True
                         break
                     except OSError:
                         tries += 1
