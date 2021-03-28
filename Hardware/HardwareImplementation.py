@@ -43,10 +43,10 @@ class HardwareImplementation(HardwareInterface.HardwareInterface):
         self._led_matrix = LedWrapper(matrix.MatrixBackpack16x8(tca[4]),
                                            MCP23017(tca[5], address=0x20))
         self._led_matrix.clear()
-        self._led_matrix.clear()
 
     def mark_squares(self, matrix: List[List[bool]]):
         """ Marks square[x,y] on the chessboard 0 <= x, y < 8 if square[x,y] == True"""
+        self._led_matrix.clear()
         for column in range(8):
             for row in range(8):
                 if matrix[column][row]:
@@ -95,7 +95,7 @@ class LedWrapper:
         """ Marks one square on the chessboard"""
         try:
             self._matrix[column, row] = True
-            self._led_matrix[column, row + 1] = True
+            self._matrix[column, row + 1] = True
         except OSError:
             tries = 0
             while tries < 3:
