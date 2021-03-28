@@ -82,7 +82,7 @@ class LedWrapper:
             res = retry(self._matrix.fill, 0)
             if not res:
                 raise
-        for led in column:
+        for led in self._column:
             try:
                 led.value = False
             except OSError:
