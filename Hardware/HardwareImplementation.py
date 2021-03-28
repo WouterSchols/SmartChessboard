@@ -56,14 +56,15 @@ class HardwareImplementation(HardwareInterface.HardwareInterface):
         """ Returns all occupied squares """
         result = []
         for file in self._board_reed:
-            result.append([])
+            result_file = []
             for square in file:
                 try:
-                    result.append(not square.value)  # Check if square is not free
+                    result_file.append(not square.value)  # Check if square is not free
                 except OSError:  # OSError commonly caused by noise on the I2C buss
                     res = retry(result.append, square.value)
                     if not res:
                         raise
+            result.append(result_file)
         return result
 
 
