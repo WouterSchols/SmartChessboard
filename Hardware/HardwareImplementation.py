@@ -1,5 +1,6 @@
 from Hardware import HardwareInterface
-from typing import List, Type
+from typing import List
+import board
 import busio
 import digitalio
 import adafruit_tca9548a
