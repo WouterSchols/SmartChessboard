@@ -70,7 +70,7 @@ class HardwareImplementation(HardwareInterface.HardwareInterface):
 class LedWrapper:
     """" Wraps LED hardware """
 
-    def __init__(self, matrix: adafruit_ht16k33.matrix.MatrixBackpack16x8, mcp: MCP23017):
+    def __init__(self, matrix: matrix.MatrixBackpack16x8, mcp: MCP23017):
         self._matrix = matrix
         self._column = [mcp.get_pin(i) for i in range(0, 9)]
 
