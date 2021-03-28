@@ -91,34 +91,33 @@ class LedWrapper:
                 if not res:
                     raise
 
-    def mark_square(self, column: int, row: int):
+    def mark_square(self, file: int, rank: int):
         """ Marks one square on the chessboard"""
         try:
-            self._matrix[column, row] = True
-            self._matrix[column, row + 1] = True
+            self._matrix[7 - file, rank] = True
+            self._matrix[7 - file, rank + 1] = True
         except OSError:
             tries = 0
             while tries < 3:
                 try:
-                    self._matrix[column, row] = True
-                    self._matrix[column, row + 1] = True
+                    self._matrix[7 - file, rank] = True
+                    self._matrix[7 - file, rank + 1] = True
                     break
                 except OSError:
                     tries += 1
             if tries >= 3:
                 raise
 
-        self._matrix[column, row + 1] = True
-        if column < 8:
+        if file < 7:
             try:
-                self._matrix[column + 1, row] = True
-                self._matrix[column + 1, row + 1] = True
+                self._matrix[7 - file - 1, rank] = True
+                self._matrix[7 - file - 1, rank + 1] = True
             except OSError:
                 tries = 0
                 while tries < 3:
                     try:
-                        self._matrix[column + 1, row] = True
-                        self._matrix[column + 1, row + 1] = True
+                        self._matrix[7 - file - 1, rank] = True
+                        self._matrix[7 - file - 1, rank + 1] = True
                         break
                     except OSError:
                         tries += 1
@@ -126,8 +125,8 @@ class LedWrapper:
                     raise
         else:
             try:
-                self._column[row].value = True
-                self._column[row + 1].value = True
+                self._column[rank].value = True
+                self._column[rank + 1].value = True
             except OSError:
                 res = retry(setattr, led, 'value', False)
                 if not res:
