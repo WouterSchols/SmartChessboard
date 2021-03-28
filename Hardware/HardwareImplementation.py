@@ -47,10 +47,10 @@ class HardwareImplementation(HardwareInterface.HardwareInterface):
     def mark_squares(self, matrix: List[List[bool]]):
         """ Marks square[x,y] on the chessboard 0 <= x, y < 8 if square[x,y] == True"""
         self._led_matrix.clear()
-        for column in range(8):
-            for row in range(8):
-                if matrix[column][row]:
-                    self._led_matrix.mark_square(column, row)
+        for file in range(8):
+            for rank in range(8):
+                if matrix[file][rank]:
+                    self._led_matrix.mark_square(file, rank)
 
     def get_occupancy(self) -> List[List[bool]]:
         """ Returns all occupied squares """
