@@ -7,6 +7,8 @@ import adafruit_tca9548a
 from adafruit_ht16k33 import matrix
 from adafruit_mcp230xx.mcp23017 import MCP23017
 
+TRIES = 5
+
 class HardwareImplementation(HardwareInterface.HardwareInterface):
     """ Interface to Hardware chessboard"""
 
@@ -98,14 +100,14 @@ class LedWrapper:
             self._matrix[rank + 1, 7 - rank] = True
         except OSError:
             tries = 0
-            while tries < 3:
+            while tries < TRIES:
                 try:
                     self._matrix[rank, 7 - file] = True
                     self._matrix[rank + 1, 7 - rank] = True
                     break
                 except OSError:
                     tries += 1
-            if tries >= 3:
+            if tries >= TRIES:
                 raise
 
         if file < 7:
@@ -114,14 +116,14 @@ class LedWrapper:
                 self._matrix[rank + 1, 7 - rank - 1] = True
             except OSError:
                 tries = 0
-                while tries < 3:
+                while tries < TRIES:
                     try:
                         self._matrix[rank, 7 - file - 1] = True
                         self._matrix[rank + 1, 7 - rank - 1] = True
                         break
                     except OSError:
                         tries += 1
-                if tries >= 3:
+                if tries >= TRIES:
                     raise
         else:
             try:

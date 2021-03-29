@@ -1,15 +1,16 @@
+import sys
+import chess
+from chess import engine
 from copy import deepcopy
 from unittest import TestCase
 from unittest.mock import patch, call
 import mock as mock
+sys.modules['Hardware.HardwareImplementation'] = mock.Mock()  # Prevents importing HardwareImplementation
 from Clients import HardwareClient
-import chess
-from chess import engine
 
 
 @mock.patch('Clients.HardwareClient.HardwareClient._hwi')
 class TestHardwareClient(TestCase):
-
     hc: HardwareClient.HardwareClient
 
     def setUp(self):
@@ -80,7 +81,7 @@ class TestHardwareClient(TestCase):
 
         # Play move itr 1, itr 2 terminate
         with patch.object(HardwareClient.HardwareClient, '_game_is_over') as game_over_mock:
-            game_over_mock.side_effect = [False,  True]
+            game_over_mock.side_effect = [False, True]
             self.hc._hw_detect_player_move()
 
         self.assertIsNotNone(self.hc._output_playResult, "Output move has not been processed")
@@ -100,7 +101,7 @@ class TestHardwareClient(TestCase):
 
         # Play move itr 1, itr 2 terminate
         with patch.object(HardwareClient.HardwareClient, '_game_is_over') as game_over_mock:
-            game_over_mock.side_effect = [False,  True]
+            game_over_mock.side_effect = [False, True]
             self.hc._hw_detect_player_move()
 
         self.assertIsNotNone(self.hc._output_playResult, "Output move has not been processed")
@@ -118,7 +119,7 @@ class TestHardwareClient(TestCase):
 
         # Play move itr 1, itr 2 terminate
         with patch.object(HardwareClient.HardwareClient, '_game_is_over') as game_over_mock:
-            game_over_mock.side_effect = [False,  True]
+            game_over_mock.side_effect = [False, True]
             self.hc._hw_detect_player_move()
 
         self.assertIsNotNone(self.hc._output_playResult, "Output move has not been processed")
@@ -215,7 +216,7 @@ class TestHardwareClient(TestCase):
         self.assertIsNone(self.hc._input_playResult, "Input move has not been processed correctly")
 
         # Check that in first iteration a2 and a4 are marked and next iteration no squares are marked
-        marking2 = [[False]*8 for _ in range(8)]
+        marking2 = [[False] * 8 for _ in range(8)]
         marking1 = deepcopy(marking2)
         marking1[0][1] = True
         marking1[0][3] = True
@@ -247,7 +248,7 @@ class TestHardwareClient(TestCase):
         self.assertIsNone(self.hc._input_playResult, "Input move has not been processed correctly")
 
         # Check that in first two iterations b4 and a5 are marked and next iteration no squares are marked
-        marking3 = [[False]*8 for _ in range(8)]
+        marking3 = [[False] * 8 for _ in range(8)]
         marking1 = deepcopy(marking3)
         marking1[1][3] = True
         marking1[0][4] = True
@@ -277,7 +278,7 @@ class TestHardwareClient(TestCase):
         self.assertIsNone(self.hc._input_playResult, "Input move has not been processed correctly")
 
         # Check that in first iteration e1 and g1 are marked and next iteration f1 and h1 are marked
-        marking1 = [[False]*8 for _ in range(8)]
+        marking1 = [[False] * 8 for _ in range(8)]
         marking2 = deepcopy(marking1)
         marking1[4][0] = True
         marking1[6][0] = True
@@ -326,7 +327,7 @@ class TestHardwareClient(TestCase):
         set_occupancy(hwi_mock, self.hc._board)
         self.hc._board.push(chess.Move(chess.square(0, 1), chess.square(0, 3)))  # Move pawn a4
         diff = self.hc._diff_occupancy_board(hwi_mock.get_occupancy.return_value)
-        expected = [[False]*8 for _ in range(8)]
+        expected = [[False] * 8 for _ in range(8)]
         expected[0][1] = True
         expected[0][3] = True
         self.assertEqual(diff, expected, "Incorrectly detected change in expected occupancy")
@@ -351,7 +352,7 @@ class TestHardwareClient(TestCase):
 
 def set_occupancy(hwi_mock, board_mock):
     """ Sets the return value of hwi.get_occupancy to the expected state from board"""
-    occupancy = [[False]*8 for _ in range(8)]
+    occupancy = [[False] * 8 for _ in range(8)]
     for file in range(8):
         for rank in range(8):
             square = chess.square(file, rank)
