@@ -3,7 +3,7 @@ from threading import Lock
 import Clients.PlayerClientInterface
 import chess
 from chess import engine
-from Hardware import HardwareInterface, HardwareImplementation
+from Hardware import HardwareImplementation, HardwareInterface
 from time import sleep
 from typing import List, Optional
 from copy import deepcopy

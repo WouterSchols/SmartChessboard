@@ -1,10 +1,13 @@
 from time import sleep
-from Hardware import HardwareImplementation
+from Hardware.HardwareImplementation import HardwareImplementation
+
+if __name__ == "__main__":
+    print("test")
 
 
 def mark_test():
     """ Marks a square on the chessboard from command prompt"""
-    hi = HardwareImplementation.HardwareImplementation()
+    hi = HardwareImplementation()
     while True:
         inp = input("Mark square: ")
         if len(inp) == 2:
@@ -16,7 +19,7 @@ def mark_test():
 
 def detect_test():
     """ Detects an occupied square and writes it on the chessboard"""
-    hi = HardwareImplementation.HardwareImplementation()
+    hi = HardwareImplementation()
     while True:
         matrix = hi.get_occupancy()
         for file in range(8):
