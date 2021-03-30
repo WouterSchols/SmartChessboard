@@ -32,7 +32,7 @@ def detect_test():
 
 def detect_and_mark_test():
     """ Detects occupancy and marks occupied squares """
-    hi = HardwareImplementation.HardwareImplementation()
+    hi = HardwareImplementation()
     while True:
         hi.mark_squares(hi.get_occupancy())
         sleep(1)
