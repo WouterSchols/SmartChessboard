@@ -1,9 +1,10 @@
 import threading
 from threading import Lock
-import Clients.PlayerClientInterface
+from Clients import PlayerClientInterface
 import chess
 from chess import engine
-from Hardware import HardwareImplementation, HardwareInterface
+from Hardware import HardwareImplementation
+from Hardware import HardwareInterface
 from time import sleep
 from typing import List, Optional
 from copy import deepcopy
@@ -16,7 +17,7 @@ def _get_square_from_matrix(matrix: List[List[bool]], square: chess.Square) -> b
     return matrix[chess.square_file(square)][chess.square_rank(square)]
 
 
-class HardwareClient(Clients.PlayerClientInterface.PlayerClientInterface):
+class HardwareClient(PlayerClientInterface.PlayerClientInterface):
     """ Interface to Hardware chessboard"""
 
     # Board state

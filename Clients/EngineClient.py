@@ -1,8 +1,8 @@
-import Clients.PlayerClientInterface
+import Hardware.PlayerClientInterface
 import chess.engine
 
 
-class EngineClient(Clients.PlayerClientInterface.PlayerClientInterface):
+class EngineClient(Hardware.PlayerClientInterface.PlayerClientInterface):
     """ Defines interface for an engine """
 
     _board: chess.Board
