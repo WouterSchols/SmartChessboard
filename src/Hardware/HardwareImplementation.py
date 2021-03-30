@@ -95,44 +95,48 @@ class LedWrapper:
 
     def mark_square(self, file: int, rank: int):
         """ Marks one square on the chessboard"""
-        try:
-            self._matrix[rank, 7 - file] = True
-            self._matrix[rank + 1, 7 - rank] = True
-        except OSError:
-            tries = 0
-            while tries < TRIES:
-                try:
-                    self._matrix[rank, 7 - file] = True
-                    self._matrix[rank + 1, 7 - rank] = True
-                    break
-                except OSError:
-                    tries += 1
-            if tries >= TRIES:
-                raise
-
-        if file < 7:
+        if file == 0:
             try:
-                self._matrix[rank, 7 - file - 1] = True
-                self._matrix[rank + 1, 7 - rank - 1] = True
+                self._column[file].value = True
+            except OSError:
+                res = retry(setattr, self._column[file], 'value', False)
+                if not res:
+                    raise
+            try:
+                self._column[file + 1].value = True
+            except OSError:
+                res = retry(setattr, self._column[file + 1], 'value', False)
+                if not res:
+                    raise
+        else:
+            try:
+                self._matrix[7 - file, rank] = True
+                self._matrix[7 - file, rank + 1] = True
             except OSError:
                 tries = 0
                 while tries < TRIES:
                     try:
-                        self._matrix[rank, 7 - file - 1] = True
-                        self._matrix[rank + 1, 7 - rank - 1] = True
+                        self._matrix[7 - file, rank] = True
+                        self._matrix[7 - file, rank + 1] = True
                         break
                     except OSError:
                         tries += 1
                 if tries >= TRIES:
                     raise
-        else:
-            try:
-                self._column[rank].value = True
-                self._column[rank + 1].value = True
-            except OSError:
-                res = retry(setattr, led, 'value', False)
-                if not res:
-                    raise
+        try:
+            self._matrix[6 - file, rank] = True
+            self._matrix[6 - file, rank + 1] = True
+        except OSError:
+            tries = 0
+            while tries < TRIES:
+                try:
+                    self._matrix[6 - file, rank] = True
+                    self._matrix[6 - file, rank + 1] = True
+                    break
+                except OSError:
+                    tries += 1
+            if tries >= TRIES:
+                raise
 
 
 def retry(func, *arg) -> bool:
