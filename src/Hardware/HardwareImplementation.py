@@ -1,4 +1,4 @@
-from Hardware import HardwareInterface
+from src.Hardware import HardwareInterface
 from typing import List
 import board
 import busio

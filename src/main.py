@@ -1,6 +1,4 @@
-from Clients import ConsoleClient
-from Clients import EngineClient
-from Clients import HardwareClient
+from src.Clients import EngineClient, HardwareClient
 import chess
 
 

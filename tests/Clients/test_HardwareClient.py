@@ -5,11 +5,11 @@ from copy import deepcopy
 from unittest import TestCase
 from unittest.mock import patch, call
 import mock as mock
-sys.modules['Hardware.HardwareImplementation'] = mock.Mock()  # Prevents importing HardwareImplementation
-from Clients import HardwareClient
+sys.modules['src.Hardware.HardwareImplementation'] = mock.Mock()  # Prevents importing HardwareImplementation
+from src.Clients import HardwareClient
 
 
-@mock.patch('Clients.HardwareClient.HardwareClient._hwi')
+@mock.patch('src.Clients.HardwareClient.HardwareClient._hwi')
 class TestHardwareClient(TestCase):
     hc: HardwareClient.HardwareClient
 
@@ -332,7 +332,7 @@ class TestHardwareClient(TestCase):
         expected[0][3] = True
         self.assertEqual(diff, expected, "Incorrectly detected change in expected occupancy")
 
-    @mock.patch('Clients.HardwareClient.HardwareClient._board')
+    @mock.patch('src.Clients.HardwareClient.HardwareClient._board')
     def test__game_is_over(self, board_mock, _):
         """ Simple unit Test to detect if game is over """
         board_mock.is_checkmate.return_value = False
