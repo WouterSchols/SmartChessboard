@@ -1,5 +1,6 @@
 from time import sleep
 from src.Hardware.HardwareImplementation import HardwareImplementation
+# Remember to add -m src.Hardware.HardwareImplementation.py when running from console
 
 if __name__ == "__main__":
     print("test")
