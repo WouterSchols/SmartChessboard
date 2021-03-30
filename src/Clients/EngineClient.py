@@ -1,4 +1,4 @@
-import Hardware.PlayerClientInterface
+import Hardware.HardwareImplementation
 import chess.engine
 
 
