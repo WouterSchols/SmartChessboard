@@ -2,9 +2,6 @@ from time import sleep
 from src.Hardware.HardwareImplementation import HardwareImplementation
 # Remember to add -m src.Hardware.HardwareImplementation.py when running from console
 
-if __name__ == "__main__":
-    print("test")
-
 
 def mark_test():
     """ Marks a square on the chessboard from command prompt"""
@@ -36,3 +33,17 @@ def detect_and_mark_test():
     while True:
         hi.mark_squares(hi.get_occupancy())
         sleep(1)
+
+
+if __name__ == "__main__":
+    print("1. mark_test")
+    print("2. detect_test")
+    print("3. detect_and_mark_test")
+    print('-'*20)
+    inp = input("choice (1, 2, 3): ")
+    if inp == 1:
+        mark_test()
+    if inp == 2:
+        detect_test()
+    if inp == 3:
+        detect_and_mark_test()
