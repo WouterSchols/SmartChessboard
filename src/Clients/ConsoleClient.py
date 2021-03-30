@@ -1,9 +1,9 @@
 from chess import engine
-import Hardware.PlayerClientInterface
+from src.Clients import PlayerClientInterface
 import chess.engine
 
 
-class ConsoleClient(Hardware.PlayerClientInterface.PlayerClientInterface):
+class ConsoleClient(PlayerClientInterface.PlayerClientInterface):
     """ Defines commandline interface mainly for testing purposes """
 
     _board: chess.Board

@@ -27,7 +27,7 @@ setuptools.setup(
         'pyftdi',
         'pyserial',
         'pyusb',
-        'selenium=',
+        'selenium',
         'urllib3'
     ]
 )
