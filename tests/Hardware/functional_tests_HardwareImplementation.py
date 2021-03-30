@@ -6,7 +6,6 @@ sys.path.insert(1, os.path.abspath(os.path.join(os.path.dirname(os.path.dirname(
 print(sys.path)
 
 from src.Hardware.HardwareImplementation import HardwareImplementation
-# Remember to add -m src.Hardware.HardwareImplementation.py when running from console
 
 
 def mark_test():
