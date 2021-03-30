@@ -1,4 +1,10 @@
 from time import sleep
+import sys
+import os.path
+
+sys.path.insert(1, os.path.abspath(os.path.join(os.path.dirname(os.path.dirname(__file__)), os.path.pardir)))
+print(sys.path)
+
 from src.Hardware.HardwareImplementation import HardwareImplementation
 # Remember to add -m src.Hardware.HardwareImplementation.py when running from console
 
@@ -41,9 +47,9 @@ if __name__ == "__main__":
     print("3. detect_and_mark_test")
     print('-'*20)
     inp = input("choice (1, 2, 3): ")
-    if inp == 1:
+    if int(inp) == 1:
         mark_test()
-    if inp == 2:
+    if int(inp) == 2:
         detect_test()
-    if inp == 3:
+    if int(inp) == 3:
         detect_and_mark_test()
