@@ -76,6 +76,20 @@ class LedWrapper:
     def __init__(self, matrix: matrix.MatrixBackpack16x8, mcp: MCP23017):
         self._matrix = matrix
         self._column = [mcp.get_pin(i) for i in range(0, 9)]
+        for pin in self._column:
+            try:
+               pin.direction = digitalio.Direction.OUTPUT
+            except OSError:
+                res = retry(setattr, pin, 'direction', Direction.OUTPUT)
+                if not res:
+                    raise
+            try:
+               pin.value = False
+            except OSError:
+                res = retry(setattr, pin, 'value', False)
+                if not res:
+                    raise
+        self.clear()
 
     def clear(self):
         """ Clears all square on the chessboard """
@@ -97,41 +111,41 @@ class LedWrapper:
         """ Marks one square on the chessboard"""
         if file == 0:
             try:
-                self._column[file].value = True
+                self._column[8 - rank].value = True
             except OSError:
-                res = retry(setattr, self._column[file], 'value', False)
+                res = retry(setattr, self._column[8 - rank], 'value', True)
                 if not res:
                     raise
             try:
-                self._column[file + 1].value = True
+                self._column[7 - rank].value = True
             except OSError:
-                res = retry(setattr, self._column[file + 1], 'value', False)
+                res = retry(setattr, self._column[7 - rank], 'value', True)
                 if not res:
                     raise
         else:
             try:
-                self._matrix[7 - file, rank] = True
-                self._matrix[7 - file, rank + 1] = True
+                self._matrix[7 - rank, file - 1] = True
+                self._matrix[7 - rank + 1, file - 1] = True
             except OSError:
                 tries = 0
                 while tries < TRIES:
                     try:
-                        self._matrix[7 - file, rank] = True
-                        self._matrix[7 - file, rank + 1] = True
+                        self._matrix[7 - rank, file - 1] = True
+                        self._matrix[7 - rank + 1, file - 1] = True
                         break
                     except OSError:
                         tries += 1
                 if tries >= TRIES:
                     raise
         try:
-            self._matrix[6 - file, rank] = True
-            self._matrix[6 - file, rank + 1] = True
+            self._matrix[7 - rank, file] = True
+            self._matrix[7 - rank + 1, file] = True
         except OSError:
             tries = 0
             while tries < TRIES:
                 try:
-                    self._matrix[6 - file, rank] = True
-                    self._matrix[6 - file, rank + 1] = True
+                    self._matrix[7 - rank, file] = True
+                    self._matrix[7 - rank + 1, file] = True
                     break
                 except OSError:
                     tries += 1
@@ -142,7 +156,7 @@ class LedWrapper:
 def retry(func, *arg) -> bool:
     """" Tries to execute a function until no exception is thrown or 3 tries have failed """
     tries = 0
-    while tries < 3:
+    while tries < TRIES:
         try:
             func(*arg)
             return True

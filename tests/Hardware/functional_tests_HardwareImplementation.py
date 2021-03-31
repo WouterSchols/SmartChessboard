@@ -15,7 +15,8 @@ def mark_test():
         inp = input("Mark square: ")
         if len(inp) == 2:
             matrix = [[False]*8 for _ in range(8)]
-            matrix[ord(inp[0]) - ord('a')][int(inp[1])] = True
+            matrix[ord(inp[0]) - ord('a')][int(inp[1]) - 1] = True
+            #print("file " + str(ord(inp[0]) - ord('a')) + ", " + (int(inp[1] - 1)))
             hi.mark_squares(matrix)
         sleep(1)
 
@@ -28,7 +29,7 @@ def detect_test():
         for file in range(8):
             for rank in range(8):
                 if matrix[file][rank]:
-                    print(chr(ord('a') + file) + str(rank))
+                    print(chr(ord('a') + file) + str(rank + 1))
         sleep(1)
 
 
