@@ -11,9 +11,17 @@ from copy import deepcopy
 SLEEP_TIME = 0.5  # Time to sleep after every scan in seconds
 
 
-def _get_square_from_matrix(matrix: List[List[bool]], square: chess.Square) -> bool:
-    """ Get square from 8x8 matrix """
-    return matrix[chess.square_file(square)][chess.square_rank(square)]
+def _get_occupancy_square_from_matrix(occupancy_matrix: List[List[bool]], square: chess.Square) -> bool:
+    """ Check if square is occupied in occupancy matrix
+
+    A chess square (ie b3) has a file (b = file 1) and a rank (3 = file 2) now if square b3 is occupied
+    then in the occupancy matrix occupancy_matrix[1][2] = TRUE. In this case this method will return TRUE
+    otherwise the method will return false
+    :param occupancy_matrix: 8x8 matrix of booleans implemented as a 2d list.
+    :param square: The square to be checked
+    :return: TRUE iff square is occupied
+    """
+    return occupancy_matrix[chess.square_file(square)][chess.square_rank(square)]
 
 
 class HardwareClient(PlayerClientInterface.PlayerClientInterface):
@@ -33,34 +41,51 @@ class HardwareClient(PlayerClientInterface.PlayerClientInterface):
     _hw_thread: threading.Thread
     _hwi: HardwareInterface = HardwareImplementation.HardwareImplementation()
     _stop_flag: bool = False
-    _flag_lock: Lock = Lock()
+    _flag_lock: Lock = Lock()  # Required to change flag
 
-    def __init__(self, color: chess.Color):
-        """ Creates client and starts thread to control hardware chessboard """
+    def __init__(self, color: chess.Color) -> None:
+        """ Creates client and starts thread to control hardware chessboard
+        :param color: Weather the client is black or white
+        """
         self._color = color
-        self._hw_thread = threading.Thread(target=self._hw_control)
+        self._hw_thread = threading.Thread(target=self._hw_control, name="Hardware thread")
         self._hw_thread.start()
 
     def __del__(self):
-        """" Terminates hardware thread and waits for thread to terminate """
+        """" Terminates hardware thread before deleting shared resources """
         with self._flag_lock:
             self._stop_flag = True
         self._hw_thread.join()
 
     def get_move(self) -> chess.engine.PlayResult:
-        """ Returns next move from client"""
+        """ Returns next move from client
+        :returns: next move played by the client in the normal engine output format
+        """
         with self._playResult_lock:
             res = self._output_playResult
             self._output_playResult = None
         return res
 
     def set_move(self, move: chess.engine.PlayResult):
-        """ Report new move to client """
+        """ Report new move to client
+        :param move: reports move of opponent to client using normal engine output format
+        """
         with self._playResult_lock:
             self._input_playResult = deepcopy(move)
 
     def _hw_control(self):
-        """ Controls the hardware and maintains the hardware state"""
+        """ Controls the hardware and maintains the hardware state
+
+        The main body of the hardware thread. The hardware thread can be in 3 states. The hardware loops
+        trough these 3 states until the game is over.
+        1.  Detect move player: In this case it is the clients turn to move. The hw_thread tries to
+            detect a valid move from the player based on the current occupancy. Next to this the hw_thread
+            will highlight any unexpected changes
+        2.  Wait move opponent: In this state the client is waiting until the set_move method is called.
+            The hw_thread will highlight unexpected changes.
+        3.  Play move opponent. The client waits until the opponents move has been played on the board. The
+            client highlights the opponents move and any unexpected changes.
+        """
         while not self._game_is_over():
             case = -1
             with self._board_lock:
@@ -72,7 +97,7 @@ class HardwareClient(PlayerClientInterface.PlayerClientInterface):
 
             # Switch case
             if case == 0:
-                self._hw_detect_player_move()
+                self._hw_detect_move_player()
             elif case == 1:
                 self._hw_wait_move_opponent()
             elif case == 2:
@@ -80,8 +105,16 @@ class HardwareClient(PlayerClientInterface.PlayerClientInterface):
             else:
                 raise Exception("internal error")
 
-    def _hw_detect_player_move(self):
-        """ Detect move from player """
+    def _hw_detect_move_player(self):
+        """ Detect move from player
+
+        We compare the expected occupancy with the actual occupancy. If two squares are different then
+        we set the square where the clients piece used to be as the from square and the other square as the too
+        square. Using this we create a candidate move (from_square, to_square). If this is a legal move then we
+        will place this move in the output field. Note that the chess library will detect any other side effects
+        from the move like captures, promotions and en passant. The internal board will be updated correctly
+        and the diff will be marked on the board.
+        """
         while not self._game_is_over():
             occupancy = self._hwi.get_occupancy()
             diff = self._diff_occupancy_board(occupancy)
@@ -92,7 +125,7 @@ class HardwareClient(PlayerClientInterface.PlayerClientInterface):
             for file in range(8):
                 for rank in range(8):
                     if diff[file][rank]:
-                        squares += [chess.square(file, rank)]
+                        squares.append(chess.square(file, rank))
 
             if len(squares) == 2:  # Try to convert changed squares to legal move
                 with self._board_lock:  # Promotion not implemented
@@ -116,7 +149,7 @@ class HardwareClient(PlayerClientInterface.PlayerClientInterface):
             sleep(SLEEP_TIME)
 
     def _hw_wait_move_opponent(self):
-        """ Let hardware wait for opponent move"""
+        """ Wait for opponent move only mark changes from expected state """
         while not self._game_is_over():
             with self._playResult_lock:
                 if self._input_playResult is not None:
@@ -126,8 +159,9 @@ class HardwareClient(PlayerClientInterface.PlayerClientInterface):
             sleep(SLEEP_TIME)
 
     def _hw_play_move_opponent(self):
-        """ Inform hardware of opponents move"""
+        """ Inform hardware of opponents move by marking from and to square + any other changes """
         with self._playResult_lock:
+            # Deepcopy made to ensure thread safety
             move = deepcopy(self._input_playResult.move) if self._input_playResult.move is not None else None
 
         if move is None:
@@ -139,11 +173,11 @@ class HardwareClient(PlayerClientInterface.PlayerClientInterface):
         while not self._game_is_over():
             occupancy = self._hwi.get_occupancy()
             if is_capture:  # Check if captured piece has been removed
-                if not _get_square_from_matrix(occupancy, move.to_square):
+                if not _get_occupancy_square_from_matrix(occupancy, move.to_square):
                     is_capture = False
             else:
-                if (not _get_square_from_matrix(occupancy, move.from_square)) \
-                        and _get_square_from_matrix(occupancy, move.to_square):
+                if (not _get_occupancy_square_from_matrix(occupancy, move.from_square)) \
+                        and _get_occupancy_square_from_matrix(occupancy, move.to_square):
                     # If move has been completed update board and clear input field
                     with self._board_lock:
                         self._board.push(move)
@@ -175,7 +209,13 @@ class HardwareClient(PlayerClientInterface.PlayerClientInterface):
         return diff
 
     def _game_is_over(self) -> bool:
-        """ Checks if the game has ended"""
+        """ Checks if the game has ended
+
+        Conditions checked
+        1.  Checkmate
+        2.  Opponent resignation
+        3.  Stop flag raised
+        """
         result = False
         with self._board_lock:
             if self._board.is_checkmate():

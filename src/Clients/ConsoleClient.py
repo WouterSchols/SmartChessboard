@@ -9,23 +9,34 @@ class ConsoleClient(PlayerClientInterface.PlayerClientInterface):
     _board: chess.Board
 
     def __init__(self):
-        """ Creates board """
+        """ Initializes board """
         self._board = chess.Board()
 
     def get_move(self) -> chess.engine.PlayResult:
-        """ Parses move """
+        """ Parses new move
+
+        Prints the current position and waits for an input move.
+        Input move should be in format <from_square><to_square> ie. e2e4 to move pawn to e4. The move should be
+        legal in the current position
+        :returns: Move played in engine plays format
+        """
         print(self._board)
         while True:
             txt = input()
             try:
                 move = chess.Move.from_uci(txt)
-                break
+                if self._board.is_legal(move):
+                    break
+                else:
+                    print("not a legal move")
             except ValueError:
                 print("Not parsed")
         self._board.push(move)
         return engine.PlayResult(move, None)
 
     def set_move(self, move: chess.engine.PlayResult):
-        """ Report new moveto client """
+        """ Report new move to the client
+        :param move: opponents move in engine format, only move field is used
+        """
         if move.move is not None:
             self._board.push(move.move)

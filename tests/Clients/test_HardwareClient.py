@@ -46,7 +46,7 @@ class TestHardwareClient(TestCase):
         self.hc.color = chess.WHITE
         with patch.object(HardwareClient.HardwareClient, '_game_is_over') as game_over_mock:
             game_over_mock.side_effect = [False, True]
-            with patch.object(HardwareClient.HardwareClient, '_hw_detect_player_move') as target_mock:
+            with patch.object(HardwareClient.HardwareClient, '_hw_detect_move_player') as target_mock:
                 self.hc._hw_control()
                 self.assertTrue(target_mock.called, "Expected method was not called")
 
@@ -72,7 +72,7 @@ class TestHardwareClient(TestCase):
                 self.hc._hw_control()
                 self.assertTrue(target_mock.called, "Expected method was not called")
 
-    def test__hw_detect_player_move_normal(self, hwi_mock):
+    def test__hw_detect_move_player_normal(self, hwi_mock):
         """ Test detect normal move """
         # Configure occupancy
         set_occupancy(hwi_mock, self.hc._board)
@@ -82,13 +82,13 @@ class TestHardwareClient(TestCase):
         # Play move itr 1, itr 2 terminate
         with patch.object(HardwareClient.HardwareClient, '_game_is_over') as game_over_mock:
             game_over_mock.side_effect = [False, True]
-            self.hc._hw_detect_player_move()
+            self.hc._hw_detect_move_player()
 
         self.assertIsNotNone(self.hc._output_playResult, "Output move has not been processed")
         self.assertEqual(self.hc._output_playResult.move, chess.Move(chess.square(0, 1), chess.square(0, 3)),
                          "Detected move was not a4")
 
-    def test__hw_detect_player_move_capture(self, hwi_mock):
+    def test__hw_detect_move_player_capture(self, hwi_mock):
         """ Test detect normal capture """
         # Set up board
         self.hc._board.push(chess.Move(chess.square(1, 1), chess.square(1, 3)))  # b4
@@ -102,13 +102,13 @@ class TestHardwareClient(TestCase):
         # Play move itr 1, itr 2 terminate
         with patch.object(HardwareClient.HardwareClient, '_game_is_over') as game_over_mock:
             game_over_mock.side_effect = [False, True]
-            self.hc._hw_detect_player_move()
+            self.hc._hw_detect_move_player()
 
         self.assertIsNotNone(self.hc._output_playResult, "Output move has not been processed")
         self.assertEqual(self.hc._output_playResult.move, chess.Move(chess.square(1, 3), chess.square(0, 4)),
                          "Detected move was not a5")
 
-    def test__hw_detect_player_move_promote(self, hwi_mock):
+    def test__hw_detect_move_player_promote(self, hwi_mock):
         """ Test detect promotion """
         # Set up board
         self.hc._board.set_fen("4k3/P7/8/8/8/8/8/4K3 w - - 0 1")  # Lone pawn a7
@@ -120,14 +120,14 @@ class TestHardwareClient(TestCase):
         # Play move itr 1, itr 2 terminate
         with patch.object(HardwareClient.HardwareClient, '_game_is_over') as game_over_mock:
             game_over_mock.side_effect = [False, True]
-            self.hc._hw_detect_player_move()
+            self.hc._hw_detect_move_player()
 
         self.assertIsNotNone(self.hc._output_playResult, "Output move has not been processed")
         self.assertEqual(self.hc._output_playResult.move, chess.Move(chess.square(0, 6),
                                                                      chess.square(0, 7), chess.QUEEN),
                          "Detected move was not a8Q")
 
-    def test__hw_detect_player_move_reject_opponent(self, hwi_mock):
+    def test__hw_detect_move_player_reject_opponent(self, hwi_mock):
         """ Test that opponent moves are rejected """
         # Configure occupancy
         set_occupancy(hwi_mock, self.hc._board)
@@ -137,11 +137,11 @@ class TestHardwareClient(TestCase):
         # Play move itr 1, itr 2 terminate
         with patch.object(HardwareClient.HardwareClient, '_game_is_over') as game_over_mock:
             game_over_mock.side_effect = [False, True]
-            self.hc._hw_detect_player_move()
+            self.hc._hw_detect_move_player()
 
         self.assertIsNone(self.hc._output_playResult, "Opponent move detected as player move")
 
-    def test__hw_detect_player_move_reject_incomplete(self, hwi_mock):
+    def test__hw_detect_move_player_reject_incomplete(self, hwi_mock):
         """ Test that incomplete moves are not accepted """
         # Configure occupancy
         set_occupancy(hwi_mock, self.hc._board)
@@ -150,11 +150,11 @@ class TestHardwareClient(TestCase):
         # Play move itr 1, itr 2 terminate
         with patch.object(HardwareClient.HardwareClient, '_game_is_over') as game_over_mock:
             game_over_mock.side_effect = [False, True]
-            self.hc._hw_detect_player_move()
+            self.hc._hw_detect_move_player()
 
         self.assertIsNone(self.hc._output_playResult, "Incorrectly detected move")
 
-    def test__hw_detect_player_move_reject_illegal(self, hwi_mock):
+    def test__hw_detect_move_player_reject_illegal(self, hwi_mock):
         """ Test that illegal moves are not accepted """
         # Set up board
         self.hc._board.set_fen("3kr3/8/8/8/8/8/P7/4K3 w - - 0 1")  # Pawn a2 but king in check
@@ -166,11 +166,11 @@ class TestHardwareClient(TestCase):
         # Play move itr 1, itr 2 terminate
         with patch.object(HardwareClient.HardwareClient, '_game_is_over') as game_over_mock:
             game_over_mock.side_effect = [False, True]
-            self.hc._hw_detect_player_move()
+            self.hc._hw_detect_move_player()
 
         self.assertIsNone(self.hc._output_playResult, "Illegal move accepted")
 
-    def test__hw_detect_player_move_reject_corrupted(self, hwi_mock):
+    def test__hw_detect_move_player_reject_corrupted(self, hwi_mock):
         """ Test that corrupted moves are not accepted """
         # Configure occupancy
         set_occupancy(hwi_mock, self.hc._board)
@@ -181,7 +181,7 @@ class TestHardwareClient(TestCase):
         # Play move itr 1, itr 2 terminate
         with patch.object(HardwareClient.HardwareClient, '_game_is_over') as game_over_mock:
             game_over_mock.side_effect = [False, True]
-            self.hc._hw_detect_player_move()
+            self.hc._hw_detect_move_player()
 
         self.assertIsNone(self.hc._output_playResult, "Incorrectly detected move")
 
