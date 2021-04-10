@@ -47,7 +47,7 @@ class HardwareImplementation(HardwareInterface.HardwareInterface):
         """
         i2c = busio.I2C(board.SCL, board.SDA)
         tca = adafruit_tca9548a.TCA9548A(i2c, address=0x71)
-        mcp = [MCP23017(tca[i], address=0x20) for i in range(4)]
+        mcp = [perform_safe(lambda : MCP23017(tca[i], address=0x20))() for i in range(4)]
 
         self._board_reed = [[] for _ in range(8)]
 
@@ -77,9 +77,9 @@ class HardwareImplementation(HardwareInterface.HardwareInterface):
         #         self._board_reed[i][j].pull = digitalio.Pull.UP
 
         # Initialize LED matrix
-        self._led_matrix = LedWrapper(matrix.MatrixBackpack16x8(tca[4]),
+        self._led_wrapper = LedWrapper(matrix.MatrixBackpack16x8(tca[4]),
                                       MCP23017(tca[5], address=0x20))
-        self._led_matrix.clear()
+        self._led_wrapper.clear()
 
     def mark_squares(self, squares: List[List[bool]]) -> None:
         """ Marks squares on the chessboard where squares is an 8x8 matrix implemented as a 2s list
@@ -89,7 +89,7 @@ class HardwareImplementation(HardwareInterface.HardwareInterface):
         :param squares: 8x8 matrix of squares to mark on the chessboard where square [file][rank]
             is marked if square[file][rank] == TRUE
         """
-        self._led_matrix.clear()
+        self._led_wrapper.clear()
         for file in range(8):
             for rank in range(8):
                 if squares[file][rank]:
@@ -139,7 +139,7 @@ class LedWrapper:
         @perform_safe
         def light(rank, file):
             """ Safely turns on LED at position rank, file """
-            self._ht16k33[rank][file] = True
+            self._ht16k33[rank, file] = True
 
         if file == 0:
             perform_safe(setattr)(self._column[8 - rank], 'value', True)  # _column[8 - rank].value = True
