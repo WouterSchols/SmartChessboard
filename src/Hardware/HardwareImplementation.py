@@ -25,8 +25,7 @@ def perform_safe(func: Callable[[Any], Any], max_tries: int = 5) -> Callable[[An
         tries = 0
         while True:
             try:
-                func(*args, **kwargs)
-                return
+                return func(*args, **kwargs)
             except OSError:
                 if tries < max_tries:
                     tries += 1
@@ -47,7 +46,7 @@ class HardwareImplementation(HardwareInterface.HardwareInterface):
         """
         i2c = busio.I2C(board.SCL, board.SDA)
         tca = adafruit_tca9548a.TCA9548A(i2c, address=0x71)
-        mcp = [perform_safe(lambda : MCP23017(tca[i], address=0x20))() for i in range(4)]
+        mcp = [perform_safe(lambda i: MCP23017(tca[i], address=0x20))(i) for i in range(4)]
 
         self._board_reed = [[] for _ in range(8)]
 
@@ -93,7 +92,7 @@ class HardwareImplementation(HardwareInterface.HardwareInterface):
         for file in range(8):
             for rank in range(8):
                 if squares[file][rank]:
-                    self._led_matrix.mark_square(file, rank)
+                    self._led_wrapper.mark_square(file, rank)
 
     def get_occupancy(self) -> List[List[bool]]:
         """ Returns all occupied squares as 8x8 matrix implemented as a 2d list
