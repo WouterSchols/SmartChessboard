@@ -12,5 +12,4 @@ if __name__ == '__main__':
         black.set_move(white.get_move())
         white.set_move(black.get_move())
 
-
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/
