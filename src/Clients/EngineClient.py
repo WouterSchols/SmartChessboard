@@ -25,6 +25,6 @@ class EngineClient(PlayerClientInterface.PlayerClientInterface):
         return move
 
     def set_move(self, move: chess.engine.PlayResult):
-        """ Report new moveto client """
+        """ Report new move to client """
         if move.move is not None:
             self._board.push(move.move)

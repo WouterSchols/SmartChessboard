@@ -25,7 +25,7 @@ class ConsoleClient(PlayerClientInterface.PlayerClientInterface):
             txt = input()
             try:
                 move = chess.Move.from_uci(txt)
-                if self._board.is_legal(move):
+                if move in self._board.legal_moves:
                     break
                 else:
                     print("not a legal move")
