@@ -8,8 +8,7 @@ from adafruit_ht16k33 import matrix
 from adafruit_mcp230xx.mcp23017 import MCP23017
 
 
-def perform_safe(func: Callable[[Any], Any], max_tries: int = 5, reset: Callable[[None], None] = None) \
-        -> Callable[[Any], Any]:
+def perform_safe(func: Callable[[Any], Any], max_tries: int = 5) -> Callable[[Any], Any]:
     """" Tries to execute func(*args) until no OSError is thrown or TRIES attempts have failed
 
     The i2c buss is sensitive to noise. Corrupted messages can trigger an OSError on the buss device.
@@ -22,7 +21,6 @@ def perform_safe(func: Callable[[Any], Any], max_tries: int = 5, reset: Callable
     :return: function which executes func untill it either succeeds or max_tries attempts have failed
     :rtype: Same as func
     """
-
     def safe_wrapper(*args, **kwargs):
         tries = 0
         while True:
@@ -31,19 +29,12 @@ def perform_safe(func: Callable[[Any], Any], max_tries: int = 5, reset: Callable
             except OSError:
                 if tries < max_tries:
                     tries += 1
-                    if reset is not None:
-                        reset()
                 else:
                     raise
-
     return safe_wrapper
-
 
 class HardwareImplementation(HardwareInterface.HardwareInterface):
     """ Interface to Hardware chessboard"""
-
-    self._led_wrapper: LedWrapper
-    self._board_reed
 
     def __init__(self):
         """ Set up hardware connection
@@ -53,13 +44,10 @@ class HardwareImplementation(HardwareInterface.HardwareInterface):
         - Sets up a 8x8 reed_matrix mapped trough 4 MCP23017
         - Sets up a 9x9 led_matrix with the interface LedWrapper which uses a HT16k33 and 1 MCP23017
         """
-        self._link_hardware()
-
-    @perform_safe
-    def _link_hardware(self):
         i2c = busio.I2C(board.SCL, board.SDA)
         tca = adafruit_tca9548a.TCA9548A(i2c, address=0x71)
-        mcp = [MCP23017(tca[i], address=0x20) for i in range(4)]
+        mcp = [perform_safe(lambda i: MCP23017(tca[i], address=0x20))(i) for i in range(4)]
+
         self._board_reed = [[] for _ in range(8)]
 
         # Maps reed switches to board
@@ -67,23 +55,30 @@ class HardwareImplementation(HardwareInterface.HardwareInterface):
             # Map first, third, fifth, seventh rank from a to h
             for file in range(8):
                 self._board_reed[mcp_id * 2].append(mcp[mcp_id].get_pin(file))  # Which MCP to use
-                # Set pin to input and turn on resistor
-                self._board_reed[mcp_id * 2][-1].direction = digitalio.Direction.INPUT
-                self._board_reed[mcp_id * 2][-1].pull = digitalio.Pull.UP
+                # Set pin to input: self._board_reed[mcp_id * 2][-1].direction = INPUT
+                perform_safe(setattr)(self._board_reed[mcp_id * 2][-1], 'direction', digitalio.Direction.INPUT)
+                # Turn on resistor: self._board_reed[mcp_id * 2 + 1][-1].pull = Pull.UP
+                perform_safe(setattr)(self._board_reed[mcp_id * 2][-1], 'pull', digitalio.Pull.UP)
 
             # Map second, fourth, sixth, eight rank h to a (h to a was easier to wire in hardware)
             for file in reversed(range(8)):
                 self._board_reed[mcp_id * 2 + 1].append(mcp[mcp_id].get_pin(file))  # Which MCP to use
-                self._board_reed[mcp_id * 2 + 1][-1].direction = digitalio.Direction.INPUT
-                self._board_reed[mcp_id * 2 + 1][-1].pull = digitalio.Pull.UP
+                # Set pin to input: self._board_reed[mcp_id * 2 + 1][-1].direction = INPUT
+                perform_safe(setattr)(self._board_reed[mcp_id * 2 + 1][-1], 'direction', digitalio.Direction.INPUT)
+                # Turn on resistor: self._board_reed[mcp_id * 2 + 1][-1].pull = Pull.UP
+                perform_safe(setattr)(self._board_reed[mcp_id * 2 + 1][-1], 'pull', digitalio.Pull.UP)
+
+        # for file in range(0, 8):
+        #     for rank in range(0, 8):
+        #         pinId = 7 - rank if file % 2 == 0 else 8 + rank  # Which MCP pin to use (even rows 0
+        #         self._board_reed[file].append(mcp[file // 2].get_pin(pinId))  # Which MCP to use
+        #         self._board_reed[i][j].direction = digitalio.Direction.INPUT
+        #         self._board_reed[i][j].pull = digitalio.Pull.UP
 
         # Initialize LED matrix
-        if self._led_wrapper is None:
-            self._led_wrapper = LedWrapper(matrix.MatrixBackpack16x8(tca[4]), MCP23017(tca[5], address=0x20)
-                                           , self._link_hardware)
-        else:
-            self._led_wrapper.link_led(matrix.MatrixBackpack16x8(tca[4]), MCP23017(tca[5], address=0x20))
-
+        self._led_wrapper = LedWrapper(matrix.MatrixBackpack16x8(tca[4]),
+                                      MCP23017(tca[5], address=0x20))
+        self._led_wrapper.clear()
 
     def mark_squares(self, squares: List[List[bool]]) -> None:
         """ Marks squares on the chessboard where squares is an 8x8 matrix implemented as a 2s list
@@ -93,7 +88,7 @@ class HardwareImplementation(HardwareInterface.HardwareInterface):
         :param squares: 8x8 matrix of squares to mark on the chessboard where square [file][rank]
             is marked if square[file][rank] == TRUE
         """
-        self._led_matrix.clear()
+        self._led_wrapper.clear()
         for file in range(8):
             for rank in range(8):
                 if squares[file][rank]:
@@ -110,7 +105,7 @@ class HardwareImplementation(HardwareInterface.HardwareInterface):
         for file in self._board_reed:
             result_file = []
             for square in file:
-                result += not perform_safe(getattr, reset=_link_hardware)(square, 'value')  # result += [not square.value]
+                result += not perform_safe(getattr)(square, 'value')  # result += [not square.value]
             result.append(result_file)
         return result
 
@@ -118,43 +113,36 @@ class HardwareImplementation(HardwareInterface.HardwareInterface):
 class LedWrapper:
     """" Wraps LED hardware """
 
-    self._ht16k33
-    self._column
-    self._reset
-
-    def __init__(self, ht16k33: matrix.MatrixBackpack16x8, mcp: MCP23017, reset: Callable[[None], None]):
+    def __init__(self, ht16k33: matrix.MatrixBackpack16x8, mcp: MCP23017):
         """ Initializes the led matrix using the ht16k33 and MCP23017
 
         :param ht16k33: ht16k33 instance controlling a 8x9 led matrix
         :param mcp: MCP23017 instance controlling the left most row of LED
         """
-        self._reset = reset
-        self.link_led(ht16k33, mcp)
-        self.clear()
-
-    def link_led(self, ht16k33: matrix.MatrixBackpack16x8, mcp: MCP23017):
         self._ht16k33 = ht16k33
-        self._column = [mcp.get_pin(i) for i in range(9)]
+        self._column = [mcp.get_pin(i) for i in range(0, 9)]
         for pin in self._column:
-            perform_safe(setattr, reset=self._reset)(pin, 'direction', digitalio.Direction.OUTPUT)  # pin.direction = OUTPUT
+            perform_safe(setattr)(pin, 'direction', digitalio.Direction.OUTPUT)  # pin.direction = OUTPUT
+            perform_safe(setattr)(pin, 'value', False)  # pin.value = False
+        self.clear()
 
     def clear(self):
         """ Clears all square on the chessboard """
-        perform_safe(self._ht16k33.fill, reset=self._reset)(0)  # squares.fill(0)
+        perform_safe(self._ht16k33.fill, 0)  # squares.fill(0)
         for led in self._column:
-            perform_safe(setattr, reset=self._reset)(led, 'value', False)  # led.value = False
+            perform_safe(setattr)(led, 'value', False)  # led.value = False
 
     def mark_square(self, file: int, rank: int):
         """ Marks one square on the chessboard """
 
-        @perform_safe(reset=self._reset)
+        @perform_safe
         def light(rank, file):
             """ Safely turns on LED at position rank, file """
             self._ht16k33[rank, file] = True
 
         if file == 0:
-            perform_safe(setattr, reset=self._reset)(self._column[8 - rank], 'value', True)  # _column[8 - rank].value = True
-            perform_safe(setattr, reset=self._reset)(self._column[7 - rank], 'value', True)  # _column[7 - rank].value = True
+            perform_safe(setattr)(self._column[8 - rank], 'value', True)  # _column[8 - rank].value = True
+            perform_safe(setattr)(self._column[7 - rank], 'value', True)  # _column[7 - rank].value = True
         else:
             light(7 - rank, file - 1)  # _ht16k33[7 - rank][file - 1]=True
             light(6 - rank, file - 1)  # _ht16k33[6 - rank][file - 1]=True
