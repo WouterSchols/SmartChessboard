@@ -53,6 +53,8 @@ class HardwareImplementation(HardwareInterface.HardwareInterface):
     """ Interface to Hardware chessboard"""
 
     _board_reed = [[None]*8 for _ in range(8)]
+    _perform_safe: Callable[[Callable[[Any], Any]], Callable[[Any], Any]]
+    _led_wrapper: LedWrapper
 
     def __init__(self):
         """ Set up hardware connection
@@ -81,6 +83,10 @@ class HardwareImplementation(HardwareInterface.HardwareInterface):
                                       MCP23017(tca[5], address=0x20), self._perform_safe)
         self._led_wrapper.clear()
 
+    def __del__(self):
+        """ Turn of LED before shutting down """
+        self._led_wrapper.clear()
+
     def mark_squares(self, squares: List[List[bool]]) -> None:
         """ Marks squares on the chessboard where squares is an 8x8 matrix implemented as a 2s list
 
@@ -92,8 +98,7 @@ class HardwareImplementation(HardwareInterface.HardwareInterface):
         self._led_wrapper.clear()
         for file in range(8):
             for rank in range(8):
-                if squares[file][rank]:
-                    self._led_wrapper.mark_square(file, rank)
+                self._led_wrapper.set_square(file, rank, squares[file][rank])
 
     def get_occupancy(self) -> List[List[bool]]:
         """ Returns all occupied squares as 8x8 matrix implemented as a 2d list
@@ -134,16 +139,21 @@ class LedWrapper:
         for led in self._column:
             self._perform_safe(setattr)(led, 'value', False)  # led.value = False
 
-    def mark_square(self, file: int, rank: int):
-        """ Marks one square on the chessboard """
+    def set_square(self, file: int, rank: int, value: bool):
+        """ Marks one square on the chessboard
+
+        :param file: File of square to mark
+        :param rank: Rank of square to mark
+        :param value: Set to True if LED should be marked otherwise False
+        """
 
         def light(rank, file):
             """ Safely turns on LED at position rank, file """
-            self._ht16k33[rank, file] = True
+            self._ht16k33[rank, file] = value
 
         if file == 0:
-            self._perform_safe(setattr)(self._column[8 - rank], 'value', True)  # _column[8 - rank].value = True
-            self._perform_safe(setattr)(self._column[7 - rank], 'value', True)  # _column[7 - rank].value = True
+            self._perform_safe(setattr)(self._column[8 - rank], 'value', value)  # _column[8 - rank].value = True
+            self._perform_safe(setattr)(self._column[7 - rank], 'value', value)  # _column[7 - rank].value = True
         else:
             self._perform_safe(light)(8 - rank, file - 1)  # _ht16k33[7 - rank][file - 1]=True
             self._perform_safe(light)(7 - rank, file - 1)  # _ht16k33[6 - rank][file - 1]=True
