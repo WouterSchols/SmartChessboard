@@ -167,10 +167,10 @@ class LedWrapper:
 
         for file in range(9):
             for rank in range(9):
-                value = squares[file][rank] or \
-                        (file == 8 or squares[file + 1][rank]) or \
-                        (rank == 8 or squares[file + 1][rank]) or \
-                        (file == 8 or rank == 8 or squares[file + 1][rank])
+                value = (file == 0 or rank == 0 or squares[file - 1][rank - 1]) or \
+                        (file == 8 or rank == 0 or squares[file + 1][rank - 1]) or \
+                        (rank == 0 or rank == 8 or squares[file + 1][rank - 1]) or \
+                        (file == 8 or rank == 8 or squares[file + 1][rank + 1])
 
             if file == 0:
                 self._perform_safe(setattr)(self._column[8 - rank], 'value', value)  # _column[8 - rank].value = True
