@@ -42,9 +42,6 @@ def perform_safe(func: Callable[[Any], Any], max_tries: int = 5, reset: Callable
 class HardwareImplementation(HardwareInterface.HardwareInterface):
     """ Interface to Hardware chessboard"""
 
-    self._led_wrapper: LedWrapper
-    self._board_reed
-
     def __init__(self):
         """ Set up hardware connection
 
@@ -53,6 +50,7 @@ class HardwareImplementation(HardwareInterface.HardwareInterface):
         - Sets up a 8x8 reed_matrix mapped trough 4 MCP23017
         - Sets up a 9x9 led_matrix with the interface LedWrapper which uses a HT16k33 and 1 MCP23017
         """
+        self._led_wrapper = None
         self._link_hardware()
 
     @perform_safe
@@ -93,7 +91,7 @@ class HardwareImplementation(HardwareInterface.HardwareInterface):
         :param squares: 8x8 matrix of squares to mark on the chessboard where square [file][rank]
             is marked if square[file][rank] == TRUE
         """
-        self._led_matrix.clear()
+        self._led_wrapper.clear()
         for file in range(8):
             for rank in range(8):
                 if squares[file][rank]:
@@ -117,10 +115,6 @@ class HardwareImplementation(HardwareInterface.HardwareInterface):
 
 class LedWrapper:
     """" Wraps LED hardware """
-
-    self._ht16k33
-    self._column
-    self._reset
 
     def __init__(self, ht16k33: matrix.MatrixBackpack16x8, mcp: MCP23017, reset: Callable[[None], None]):
         """ Initializes the led matrix using the ht16k33 and MCP23017
@@ -147,7 +141,6 @@ class LedWrapper:
     def mark_square(self, file: int, rank: int):
         """ Marks one square on the chessboard """
 
-        @perform_safe(reset=self._reset)
         def light(rank, file):
             """ Safely turns on LED at position rank, file """
             self._ht16k33[rank, file] = True
@@ -156,7 +149,7 @@ class LedWrapper:
             perform_safe(setattr, reset=self._reset)(self._column[8 - rank], 'value', True)  # _column[8 - rank].value = True
             perform_safe(setattr, reset=self._reset)(self._column[7 - rank], 'value', True)  # _column[7 - rank].value = True
         else:
-            light(7 - rank, file - 1)  # _ht16k33[7 - rank][file - 1]=True
-            light(6 - rank, file - 1)  # _ht16k33[6 - rank][file - 1]=True
-        light(7 - rank, file)  # _ht16k33[7 - rank][file] = True
-        light(6 - rank, file)  # _ht16k33[6 - rank][file] = True
+            perform_safe(light, reset=self._reset)(8 - rank, file - 1)  # _ht16k33[7 - rank][file - 1]=True
+            perform_safe(light, reset=self._reset)(7 - rank, file - 1)  # _ht16k33[6 - rank][file - 1]=True
+        perform_safe(light, reset=self._reset)(8 - rank, file)  # _ht16k33[7 - rank][file] = True
+        perform_safe(light, reset=self._reset)(7 - rank, file)  # _ht16k33[6 - rank][file] = True
