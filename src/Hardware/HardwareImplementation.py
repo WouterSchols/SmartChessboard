@@ -52,6 +52,8 @@ def perform_safe_factory(tca: adafruit_tca9548a.TCA9548A = None, max_tries: int 
 class HardwareImplementation(HardwareInterface.HardwareInterface):
     """ Interface to Hardware chessboard"""
 
+    self._board_reed = [[None]*8 for _ in range(8)]
+
     def __init__(self):
         """ Set up hardware connection
 
@@ -66,32 +68,13 @@ class HardwareImplementation(HardwareInterface.HardwareInterface):
 
         mcp = [self._perform_safe(lambda i: MCP23017(tca[i], address=0x20))(i) for i in range(4)]
 
-        self._board_reed = [[] for _ in range(8)]
-
-        # Maps reed switches to board
-        for mcp_id in range(4):
-            # Map first, third, fifth, seventh rank from a to h
-            for file in range(8):
-                self._board_reed[mcp_id * 2].append(mcp[mcp_id].get_pin(file))  # Which MCP to use
-                # Set pin to input: self._board_reed[mcp_id * 2][-1].direction = INPUT
-                self._perform_safe(setattr)(self._board_reed[mcp_id * 2][-1], 'direction', digitalio.Direction.INPUT)
-                # Turn on resistor: self._board_reed[mcp_id * 2 + 1][-1].pull = Pull.UP
-                self._perform_safe(setattr)(self._board_reed[mcp_id * 2][-1], 'pull', digitalio.Pull.UP)
-
-            # Map second, fourth, sixth, eight rank h to a (h to a was easier to wire in hardware)
-            for file in reversed(range(8)):
-                self._board_reed[mcp_id * 2 + 1].append(mcp[mcp_id].get_pin(file))  # Which MCP to use
-                # Set pin to input: self._board_reed[mcp_id * 2 + 1][-1].direction = INPUT
-                self._perform_safe(setattr)(self._board_reed[mcp_id * 2 + 1][-1], 'direction', digitalio.Direction.INPUT)
-                # Turn on resistor: self._board_reed[mcp_id * 2 + 1][-1].pull = Pull.UP
-                self._perform_safe(setattr)(self._board_reed[mcp_id * 2 + 1][-1], 'pull', digitalio.Pull.UP)
-
-        # for file in range(0, 8):
-        #     for rank in range(0, 8):
-        #         pinId = 7 - rank if file % 2 == 0 else 8 + rank  # Which MCP pin to use (even rows 0
-        #         self._board_reed[file].append(mcp[file // 2].get_pin(pinId))  # Which MCP to use
-        #         self._board_reed[i][j].direction = digitalio.Direction.INPUT
-        #         self._board_reed[i][j].pull = digitalio.Pull.UP
+        # Initialize reed matrix
+        for i in range(8):
+            for j in range(8):
+                pinId = 7 - j if i % 2 == 0 else 8 + j # Even rows are mapped file to file and odd rows in reverse
+                self._board_reed[i][j] = self._perform_safe(mcp[i // 2].get_pin)(pinId)
+                self._perform_safe(setattr)(self._board_reed[i][j], "direction", digitalio.Direction.INPUT)
+                self._perform_safe(setattr)(self._board_reed[i][j], "pull", digitalio.Pull.UP)
 
         # Initialize LED matrix
         self._led_wrapper = LedWrapper(matrix.MatrixBackpack16x8(tca[4]),
