@@ -158,6 +158,7 @@ class LedWrapper:
     def set_squares(self, squares: List[List[bool]]):
         """ Marks squares on the chessboard
 
+        Improvement on calling clear() then marking all squires since this prevents a flickering of the LED
         :param squares: 8x8 matrix with the squares to be marked
         """
 
@@ -167,12 +168,19 @@ class LedWrapper:
 
         for file in range(9):
             for rank in range(9):
-                value = (file == 0 or rank == 0 or squares[file - 1][rank - 1]) or \
-                        (file == 8 or rank == 0 or squares[file + 1][rank - 1]) or \
-                        (rank == 0 or rank == 8 or squares[file + 1][rank - 1]) or \
-                        (file == 8 or rank == 8 or squares[file + 1][rank + 1])
+                # Check of LED should be turned on
+                value = False
+                if file > 0 and rank > 0:
+                    value = squares[file - 1][rank - 1]
+                if not value and file < 8 and rank > 0:
+                    value = squares[file][rank - 1]
+                if not value and file > 0 and rank < 8:
+                    value = squares[file - 1][rank]
+                if not value and file < 8 and rank < 8:
+                    value = squares[file][rank]
 
-            if file == 0:
-                self._perform_safe(setattr)(self._column[8 - rank], 'value', value)  # _column[8 - rank].value = True
-            else:
-                self._perform_safe(set_LED)(8 - rank, file - 1, value)  # _ht16k33[7 - rank][file - 1]=True
+                # Turn LED on or off
+                if file == 0:
+                    self._perform_safe(setattr)(self._column[8 - rank], 'value', value)  # _column[8 - rank].value = True
+                else:
+                    self._perform_safe(set_LED)(8 - rank, file - 1, value)  # _ht16k33[7 - rank][file - 1]=True
