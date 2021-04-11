@@ -52,7 +52,7 @@ def perform_safe_factory(tca: adafruit_tca9548a.TCA9548A = None, max_tries: int 
 class HardwareImplementation(HardwareInterface.HardwareInterface):
     """ Interface to Hardware chessboard"""
 
-    self._board_reed = [[None]*8 for _ in range(8)]
+    _board_reed = [[None]*8 for _ in range(8)]
 
     def __init__(self):
         """ Set up hardware connection
@@ -69,12 +69,12 @@ class HardwareImplementation(HardwareInterface.HardwareInterface):
         mcp = [self._perform_safe(lambda i: MCP23017(tca[i], address=0x20))(i) for i in range(4)]
 
         # Initialize reed matrix
-        for i in range(8):
-            for j in range(8):
-                pinId = 7 - j if i % 2 == 0 else 8 + j # Even rows are mapped file to file and odd rows in reverse
-                self._board_reed[i][j] = self._perform_safe(mcp[i // 2].get_pin)(pinId)
-                self._perform_safe(setattr)(self._board_reed[i][j], "direction", digitalio.Direction.INPUT)
-                self._perform_safe(setattr)(self._board_reed[i][j], "pull", digitalio.Pull.UP)
+        for file in range(8):
+            for rank in range(8):
+                pinId = file if rank % 2 == 0 else 15 - file
+                self._board_reed[file][rank] = self._perform_safe(mcp[rank // 2].get_pin)(pinId)
+                self._perform_safe(setattr)(self._board_reed[file][rank], "direction", digitalio.Direction.INPUT)
+                self._perform_safe(setattr)(self._board_reed[file][rank], "pull", digitalio.Pull.UP)
 
         # Initialize LED matrix
         self._led_wrapper = LedWrapper(matrix.MatrixBackpack16x8(tca[4]),
