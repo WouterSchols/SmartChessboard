@@ -15,17 +15,20 @@ class ChessDotComClient(PlayerClientInterface.PlayerClientInterface):
     _board: chess.Board = chess.Board()
     _color: chess.Color
 
-    def __init__(self, color: chess.Color):
+    def __init__(self):
         """ Creates a chromium driver
         :param color: The color being played by the chess client
         """
-        self._color = color
         options = webdriver.ChromeOptions()
         #options.add_argument("user-data-dir=c:/Users/woute/AppData/Local/Google/Chrome/User Data/")
         self._driver = webdriver.Chrome(options=options)
         self._driver.get("https://www.chess.com/play/computer")
-        input("Board is ready")
-
+        # Check if board is in initial state
+        input("Press enter once game is set up")
+        # Find color of client
+        ycoord_w_rook = self._driver.find_element_by_class_name("piece.wr.square-11").location['y']
+        ycoord_b_rook = self._driver.find_element_by_class_name("piece.br.square-18").location['y']
+        self._color = chess.WHITE if ycoord_b_rook > ycoord_w_rook else chess.BLACK
 
     def __del__(self):
         """" Terminates engine """

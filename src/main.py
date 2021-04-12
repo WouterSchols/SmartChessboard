@@ -1,4 +1,4 @@
-from Clients import EngineClient, ConsoleClient, ChessDotComClient
+from Clients import EngineClient, ConsoleClient, ChessDotComClient, HardwareClient
 import chess
 from typing import List, Any
 import setuptools
@@ -6,11 +6,11 @@ import setuptools
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    white = ConsoleClient.ConsoleClient()
-    black = ChessDotComClient.ChessDotComClient(chess.BLACK)
-    # black = EngineClient.EngineClient()
+    white = HardwareClient.HardwareClient()
+    black = ChessDotComClient.ChessDotComClient()
     while True:
         black.set_move(white.get_move())
         white.set_move(black.get_move())
+
 
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/
