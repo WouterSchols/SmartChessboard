@@ -1,4 +1,4 @@
-from src.Clients import EngineClient, ConsoleClient, ChessDotComClient
+from Clients import EngineClient, ConsoleClient, ChessDotComClient
 import chess
 from typing import List, Any
 import setuptools
@@ -8,6 +8,7 @@ import setuptools
 if __name__ == '__main__':
     white = ConsoleClient.ConsoleClient()
     black = ChessDotComClient.ChessDotComClient(chess.BLACK)
+    # black = EngineClient.EngineClient()
     while True:
         black.set_move(white.get_move())
         white.set_move(black.get_move())

@@ -5,7 +5,7 @@ from selenium import webdriver
 from selenium.webdriver import ActionChains
 from selenium.webdriver.common.keys import Keys
 from selenium.common.exceptions import StaleElementReferenceException
-from src.Clients import PlayerClientInterface
+from Clients import PlayerClientInterface
 
 class ChessDotComClient(PlayerClientInterface.PlayerClientInterface):
     """ Defines interface to play on chess.com """
@@ -21,7 +21,7 @@ class ChessDotComClient(PlayerClientInterface.PlayerClientInterface):
         """
         self._color = color
         options = webdriver.ChromeOptions()
-        options.add_argument("user-data-dir=c:/Users/woute/AppData/Local/Google/Chrome/User Data/")
+        #options.add_argument("user-data-dir=c:/Users/woute/AppData/Local/Google/Chrome/User Data/")
         self._driver = webdriver.Chrome(options=options)
         self._driver.get("https://www.chess.com/play/computer")
         input("Board is ready")

@@ -1,9 +1,9 @@
 import threading
 from threading import Lock
-from src.Clients import PlayerClientInterface
+from Clients import PlayerClientInterface
 import chess
 from chess import engine
-from src.Hardware import HardwareImplementation, HardwareInterface
+from Hardware import HardwareImplementation, HardwareInterface
 from time import sleep
 from typing import List, Optional
 from copy import deepcopy

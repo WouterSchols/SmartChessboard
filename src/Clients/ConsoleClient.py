@@ -1,5 +1,5 @@
 from chess import engine
-from src.Clients import PlayerClientInterface
+from Clients import PlayerClientInterface
 import chess.engine
 
 

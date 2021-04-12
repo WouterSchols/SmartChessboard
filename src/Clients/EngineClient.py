@@ -1,4 +1,4 @@
-from src.Clients import PlayerClientInterface
+from Clients import PlayerClientInterface
 import chess.engine
 
 
@@ -11,7 +11,7 @@ class EngineClient(PlayerClientInterface.PlayerClientInterface):
     def __init__(self):
         """ Creates engine, binary should be at BinaryDependencies/Engine/stockfish.exe """
         # self._engine = chess.engine.SimpleEngine.popen_uci("Engine/BinaryDependencies.exe")
-        self._engine = chess.engine.SimpleEngine.popen_uci("../BinaryDependencies/Engines/stockfish.exe")
+        self._engine = chess.engine.SimpleEngine.popen_uci("BinaryDependencies/Engines/stockfish")
         self._board = chess.Board()
 
     def __del__(self):
