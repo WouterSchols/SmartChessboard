@@ -11,11 +11,7 @@ class EngineClient(PlayerClientInterface.PlayerClientInterface):
     def __init__(self, path: str):
         """ Creates engine, binary should be at BinaryDependencies/Engine/stockfish.exe """
         # self._engine = chess.engine.SimpleEngine.popen_uci("Engine/BinaryDependencies.exe")
-<<<<<<< HEAD
-        self._engine = chess.engine.SimpleEngine.popen_uci("BinaryDependencies/Engines/stockfish")
-=======
         self._engine = chess.engine.SimpleEngine.popen_uci(path)
->>>>>>> b6b9274f29d0beefb0578ecfda801e4f9e434065
         self._board = chess.Board()
 
     def __del__(self):

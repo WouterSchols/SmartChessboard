@@ -6,7 +6,7 @@ import setuptools
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    white = HardwareClient.HardwareClient()
+    white = HardwareClient.HardwareClient(chess.WHITE)
     black = ChessDotComClient.ChessDotComClient()
     while True:
         black.set_move(white.get_move())

@@ -61,10 +61,14 @@ class HardwareClient(PlayerClientInterface.PlayerClientInterface):
         """ Returns next move from client
         :returns: next move played by the client in the normal engine output format
         """
-        with self._playResult_lock:
-            res = self._output_playResult
-            self._output_playResult = None
-        return res
+        while True:
+            with self._playResult_lock:
+               res = self._output_playResult
+            if res is not None:
+                self._output_playResult = None
+                return res
+            else:
+                sleep(SLEEP_TIME)
 
     def set_move(self, move: chess.engine.PlayResult):
         """ Report new move to client
@@ -143,6 +147,8 @@ class HardwareClient(PlayerClientInterface.PlayerClientInterface):
                         move.promotion = chess.QUEEN  # TODO change from auto promote queen
                     move_is_legal = move in self._board.legal_moves  # save result to not use two locks
                 if move_is_legal:
+                    with self._board_lock:
+                        self._board.push(move)
                     with self._playResult_lock:
                         self._output_playResult = engine.PlayResult(move, None)
                     return
