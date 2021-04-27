@@ -49,7 +49,7 @@ class HardwareImplementation(HardwareInterface.HardwareInterface):
                                        MCP23017(tca[5], address=0x20))
         self._led_wrapper.clear()
 
-    def perform_safe(self, func: Callable[[Any], Any]) -> Callable[[Any], Any]:
+    def _perform_safe(self, func: Callable[[Any], Any]) -> Callable[[Any], Any]:
         def safe_wrapper(*args, **kwargs):
             tries = 0
             while True:
