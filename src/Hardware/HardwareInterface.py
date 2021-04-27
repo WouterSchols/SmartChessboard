@@ -1,5 +1,13 @@
 from abc import ABC, abstractmethod
 from typing import List
+from enum import Enum
+import chess
+
+
+class Offer(Enum):
+    CONTINUE = 0
+    DRAW = 1
+    RESIGN = 2
 
 
 class HardwareInterface(ABC):
@@ -24,4 +32,23 @@ class HardwareInterface(ABC):
             get_occupancy[0][1] == TRUE
         :return: 8x8 matrix with all occupied squares on the chessboard
         """
+        pass
+
+    def promotion_piece(self) -> chess.Piece:
+        """ Which piece to promote to
+        :return: Piece to promote to if not reimplemented returns queen
+        """
+        return chess.QUEEN
+
+    def game_end_offers(self) -> Offer:
+        """ Returns continue, draw or return offers
+        :return: Always returns continue
+        """
+        return Offer.CONTINUE
+
+    def display(self, txt: str):
+        """ Displays text string on hardware
+        :param txt: text to display on hardware
+        """
+        print(txt)
         pass

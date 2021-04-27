@@ -1,30 +1,36 @@
-from Clients import PlayerClientInterface
+from Clients import ClientInterface
 import chess.engine
 
 
-class EngineClient(PlayerClientInterface.PlayerClientInterface):
+class EngineClient(ClientInterface.ClientInterface):
     """ Defines interface for an engine """
 
-    _board: chess.Board
     _engine: chess.engine
 
-    def __init__(self, path: str):
-        """ Creates engine, binary should be at BinaryDependencies/Engine/stockfish.exe """
-        # self._engine = chess.engine.SimpleEngine.popen_uci("Engine/BinaryDependencies.exe")
+    def __init__(self, color: chess.Color, path: str, move_time=0.1):
+        """ Creates engine, binary should be at BinaryDependencies/Engine/stockfish.exe
+        :param color: Color to initialize the client
+        :param path: The path to the engine
+        :param move_time: The amount of time the engine has to move
+        """
+        super().__init__(color)
         self._engine = chess.engine.SimpleEngine.popen_uci(path)
-        self._board = chess.Board()
+        self.move_time = move_time
 
     def __del__(self):
         """" Terminates engine """
-        self._engine.quit()
+        if hasattr(self, '_engine'):
+            self._engine.quit()
 
     def get_move(self) -> chess.engine.PlayResult:
         """ Returns next move from client """
-        move = self._engine.play(self._board, chess.engine.Limit(time=0.1))
+        move = self._engine.play(self._board, chess.engine.Limit(time=self.move_time))
         self._board.push(move.move)
+        self._resigned = move.resigned
         return move
 
     def set_move(self, move: chess.engine.PlayResult):
         """ Report new move to client """
         if move.move is not None:
+            print(self._board)
             self._board.push(move.move)

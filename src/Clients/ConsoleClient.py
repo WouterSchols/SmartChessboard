@@ -1,19 +1,13 @@
 from chess import engine
-from Clients import PlayerClientInterface
+from Clients import ClientInterface
 import chess.engine
 
 
-class ConsoleClient(PlayerClientInterface.PlayerClientInterface):
+class ConsoleClient(ClientInterface.ClientInterface):
     """ Defines commandline interface mainly for testing purposes """
 
-    _board: chess.Board
-
-    def __init__(self):
-        """ Initializes board """
-        self._board = chess.Board()
-
     def get_move(self) -> chess.engine.PlayResult:
-        """ Parses new move
+        """ Parses new move <from_square><to_square> or resign
 
         Prints the current position and waits for an input move.
         Input move should be in format <from_square><to_square> ie. e2e4 to move pawn to e4. The move should be
@@ -22,7 +16,15 @@ class ConsoleClient(PlayerClientInterface.PlayerClientInterface):
         """
         print(self._board)
         while True:
-            txt = input()
+            txt = input("Set move:")
+            txt = txt.replace(" ", "")
+            draw = False
+            if txt == "resign":
+                self._resigned = True
+                return engine.PlayResult(None, None, resigned=True)
+            if "draw" in txt:
+                draw = True
+                txt = txt.replace("draw", "")
             try:
                 move = chess.Move.from_uci(txt)
                 if move in self._board.legal_moves:
@@ -32,11 +34,15 @@ class ConsoleClient(PlayerClientInterface.PlayerClientInterface):
             except ValueError:
                 print("Not parsed")
         self._board.push(move)
-        return engine.PlayResult(move, None)
+        return engine.PlayResult(move, None, draw_offered=draw)
 
     def set_move(self, move: chess.engine.PlayResult):
         """ Report new move to the client
         :param move: opponents move in engine format, only move field is used
         """
+        if not move.resigned:
+            print("player resigned")
         if move.move is not None:
             self._board.push(move.move)
+            if move.draw_offered:
+                print("Draw offered")

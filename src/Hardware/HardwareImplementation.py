@@ -1,5 +1,6 @@
-from Hardware import HardwareInterface
-from typing import List, Any, Callable
+import chess
+from Hardware import HardwareInterface, safe_decorator
+from typing import List, Any, Callable, Dict
 import board
 import busio
 import digitalio
@@ -7,46 +8,6 @@ import adafruit_tca9548a
 from adafruit_ht16k33 import matrix
 from adafruit_mcp230xx.mcp23017 import MCP23017
 
-def perform_safe_factory(tca: adafruit_tca9548a.TCA9548A = None, max_tries: int = 5) -> \
-        Callable[[Callable[[Any], Any]], Callable[[Any], Any]]:
-    """ Factory to create a decorator to perform an i2c operation safely
-
-    This factory returns the perform_safe decorator. This decorator will try to execute a function untill it succeeds
-    or until max_tries have failed. If a tca is supplied then the factory will also reset the tca lock
-    after every SOError.
-
-    :param tca: The TCA9548A to reset after every OSError
-    :param max_tries: Maximum amount of times that an operation will be attempted
-    :return: The decorator perform safe
-    """
-    def perform_safe(func: Callable[[Any], Any]) -> Callable[[Any], Any]:
-        """" Tries to execute func(*args) until no OSError is thrown or TRIES attempts have failed
-
-        The i2c buss is sensitive to noise. Corrupted messages can trigger an OSError on the buss device.
-        We can recover from this error by simply resending the message until it arrives correctly. This method accepts
-        a function func which could trigger an OSError which would cause the program to fail.
-        We can easily recover from this error by retrying 'func' if the error is cause by noise. The perform
-        safe decorator makes sure that an error is only trow if the operation fails max_tries times. Because of an
-        error in the adafruit libraries the tca can softlock after an exception. Resetting the lock to false after
-        an exception prevents the errors
-        :param func: function to be executed
-        :return: function which executes func untill it either succeeds or max_tries attempts have failed
-        :rtype: Same as func
-        """
-        def safe_wrapper(*args, **kwargs):
-            tries = 0
-            while True:
-                try:
-                    return func(*args, **kwargs)
-                except OSError:
-                    if tries < max_tries:
-                        tries += 1
-                        if tca is not None:
-                            tca.i2c._locked = False
-                    else:
-                        raise
-        return safe_wrapper
-    return perform_safe
 
 class HardwareImplementation(HardwareInterface.HardwareInterface):
     """ Interface to Hardware chessboard"""
@@ -64,7 +25,7 @@ class HardwareImplementation(HardwareInterface.HardwareInterface):
         """
         i2c = busio.I2C(board.SCL, board.SDA)
         tca = adafruit_tca9548a.TCA9548A(i2c, address=0x71)
-        self._perform_safe = perform_safe_factory(tca=tca)
+        self._perform_safe = safe_decorator.perform_safe_factory(setattr(tca.i2c, '_reset', False))
 
         mcp = [self._perform_safe(lambda i: MCP23017(tca[i], address=0x20))(i) for i in range(4)]
 
@@ -75,6 +36,14 @@ class HardwareImplementation(HardwareInterface.HardwareInterface):
                 self._board_reed[file][rank] = self._perform_safe(mcp[rank // 2].get_pin)(pinId)
                 self._perform_safe(setattr)(self._board_reed[file][rank], "direction", digitalio.Direction.INPUT)
                 self._perform_safe(setattr)(self._board_reed[file][rank], "pull", digitalio.Pull.UP)
+
+        # Map output buttons
+        self._buttons = []
+        for pinId in range(8, 13):
+            self._buttons.append(self._perform_safe(mcp[6].get_pin)(pinId))
+            self._perform_safe(setattr)(self._buttons[-1], "direction", digitalio.Direction.INPUT)
+            self._perform_safe(setattr)(self._buttons[-1], "pull", digitalio.Pull.UP)
+
 
         # Initialize LED matrix
         self._led_wrapper = LedWrapper(matrix.MatrixBackpack16x8(tca[4]),
@@ -110,6 +79,49 @@ class HardwareImplementation(HardwareInterface.HardwareInterface):
             result.append(result_file)
         return result
 
+    def promotion_piece(self) -> chess.Piece:
+        """ Which piece to promote to
+            Reads input button to select promotion piece, writes selected piece to display and waits for confirmation
+        :return: Piece to promote to
+        """
+        piece = chess.QUEEN
+        while True:
+            if self._perform_safe(getattr)(self._buttons[0], 'value'):
+                piece = chess.QUEEN
+
+            if self._perform_safe(getattr)(self._buttons[1], 'value'):
+                piece = chess.ROOK
+
+            if self._perform_safe(getattr)(self._buttons[2], 'value'):
+                piece = chess.BISHOP
+
+            if self._perform_safe(getattr)(self._buttons[3], 'value'):
+                piece = chess.KNIGHT
+
+            self.display(chess.piece_name(piece))
+            if self._perform_safe(getattr)(self._buttons[4], 'value'):
+                return piece
+
+    def game_end_offers(self) -> HardwareInterface.Offer:
+        """ Returns continue, draw or return offers
+            If no button pressed returns continue, otherwise wait for confirmation
+        :return: Always returns continue
+        """
+        if self._perform_safe(getattr)(self._buttons[0], 'value'):
+            while True:
+                if self._perform_safe(getattr)(self._buttons[4], 'value'):
+                    return HardwareInterface.Offer.RESIGN
+                if self._perform_safe(getattr)(self._buttons[3], 'value'):
+                    return HardwareInterface.Offer.CONTINUE
+        if self._perform_safe(getattr)(self._buttons[1], 'value'):
+            while True:
+                if self._perform_safe(getattr)(self._buttons[4], 'value'):
+                    return HardwareInterface.Offer.DRAW
+                if self._perform_safe(getattr)(self._buttons[3], 'value'):
+                    return HardwareInterface.Offer.DRAW
+        return HardwareInterface.Offer.CONTINUE
+
+
 
 class LedWrapper:
     """" Wraps LED hardware """
@@ -133,27 +145,6 @@ class LedWrapper:
         self._perform_safe(self._ht16k33.fill)(0)  # squares.fill(0)
         for led in self._column:
             self._perform_safe(setattr)(led, 'value', False)  # led.value = False
-
-    def set_square(self, file: int, rank: int):
-        """ Marks one square on the chessboard
-
-        :param file: File of square to mark
-        :param rank: Rank of square to mark
-        """
-        if value:
-            # Turn on 4 LED
-            def light(rank, file):
-                """ Safely turns on LED at position rank, file """
-                self._ht16k33[rank, file] = True
-
-            if file == 0:
-                self._perform_safe(setattr)(self._column[8 - rank], 'value', True)  # _column[8 - rank].value = True
-                self._perform_safe(setattr)(self._column[7 - rank], 'value', True)  # _column[7 - rank].value = True
-            else:
-                self._perform_safe(light)(8 - rank, file - 1)  # _ht16k33[7 - rank][file - 1]=True
-                self._perform_safe(light)(7 - rank, file - 1)  # _ht16k33[6 - rank][file - 1]=True
-            self._perform_safe(light)(8 - rank, file)  # _ht16k33[7 - rank][file] = True
-            self._perform_safe(light)(7 - rank, file)  # _ht16k33[6 - rank][file] = True
 
     def set_squares(self, squares: List[List[bool]]):
         """ Marks squares on the chessboard

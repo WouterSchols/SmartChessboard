@@ -19,7 +19,8 @@ setuptools.setup(
         'pyserial',
         'pyusb',
         'selenium',
-        'urllib3'],
+        'urllib3',
+        'PySimpleGUI'],
     tests_require=[
         'mock'
     ],
