@@ -24,7 +24,7 @@ class HardwareImplementation(HardwareInterface.HardwareInterface):
         - Sets up a 9x9 led_matrix with the interface LedWrapper which uses a HT16k33 and 1 MCP23017
         """
         i2c = busio.I2C(board.SCL, board.SDA)
-        tca = adafruit_tca9548a.TCA9548A(i2c, address=0x71)
+        self.tca = adafruit_tca9548a.TCA9548A(i2c, address=0x71)
         self._perform_safe = safe_decorator.perform_safe_factory(lambda: setattr(tca.i2c, '_reset', False))
 
         mcp = [self._perform_safe(lambda i: MCP23017(tca[i], address=0x20))(i) for i in range(4)]
@@ -48,6 +48,22 @@ class HardwareImplementation(HardwareInterface.HardwareInterface):
         self._led_wrapper = LedWrapper(matrix.MatrixBackpack16x8(tca[4]),
                                        MCP23017(tca[5], address=0x20), self._perform_safe)
         self._led_wrapper.clear()
+
+    def perform_safe(self, func: Callable[[Any], Any]) -> Callable[[Any], Any]:
+        def safe_wrapper(*args, **kwargs):
+            tries = 0
+            while True:
+                try:
+                    return func(*args, **kwargs)
+                except OSError:
+                    if tries < max_tries:
+                        tries += 1
+                        if reset is not None:
+                            self.tca.i2c._reset = False
+                    else:
+                        raise
+
+        return safe_wrapper
 
     def __del__(self):
         """ Turn of LED before shutting down """
