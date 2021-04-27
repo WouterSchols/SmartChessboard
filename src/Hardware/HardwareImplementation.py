@@ -27,7 +27,7 @@ class HardwareImplementation(HardwareInterface.HardwareInterface):
         self.tca = adafruit_tca9548a.TCA9548A(i2c, address=0x71)
         # self._perform_safe = safe_decorator.perform_safe_factory(lambda: setattr(tca.i2c, '_reset', False))
 
-        mcp = [self._perform_safe(lambda i: MCP23017(tca[i], address=0x20))(i) for i in range(4)]
+        mcp = [self._perform_safe(lambda i: MCP23017(self.tca[i], address=0x20))(i) for i in range(4)]
 
         # Initialize reed matrix
         for file in range(8):
@@ -37,6 +37,7 @@ class HardwareImplementation(HardwareInterface.HardwareInterface):
                 self._perform_safe(setattr)(self._board_reed[file][rank], "direction", digitalio.Direction.INPUT)
                 self._perform_safe(setattr)(self._board_reed[file][rank], "pull", digitalio.Pull.UP)
 
+        led_input_mcp = MCP23017(self.tca[5], address=0x20)
         # Map output buttons
         self._buttons = []
         for pinId in range(8, 13):
@@ -45,8 +46,7 @@ class HardwareImplementation(HardwareInterface.HardwareInterface):
             self._perform_safe(setattr)(self._buttons[-1], "pull", digitalio.Pull.UP)
 
         # Initialize LED matrix
-        self._led_wrapper = LedWrapper(matrix.MatrixBackpack16x8(self.tca[4]),
-                                       MCP23017(self.tca[5], address=0x20))
+        self._led_wrapper = LedWrapper(matrix.MatrixBackpack16x8(self.tca[4]),led_input_mcp)
         self._led_wrapper.clear()
 
     def _perform_safe(self, func: Callable[[Any], Any]) -> Callable[[Any], Any]:
