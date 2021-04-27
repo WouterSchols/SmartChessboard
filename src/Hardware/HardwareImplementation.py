@@ -45,8 +45,8 @@ class HardwareImplementation(HardwareInterface.HardwareInterface):
             self._perform_safe(setattr)(self._buttons[-1], "pull", digitalio.Pull.UP)
 
         # Initialize LED matrix
-        self._led_wrapper = LedWrapper(matrix.MatrixBackpack16x8(tca[4]),
-                                       MCP23017(tca[5], address=0x20))
+        self._led_wrapper = LedWrapper(matrix.MatrixBackpack16x8(self.tca[4]),
+                                       MCP23017(self.tca[5], address=0x20))
         self._led_wrapper.clear()
 
     def _perform_safe(self, func: Callable[[Any], Any]) -> Callable[[Any], Any]:
