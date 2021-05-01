@@ -206,7 +206,7 @@ class HardwareClient(ClientInterface.ClientInterface):
                              (self.color == chess.BLACK and chess.square_rank(move.to_square) == 0)):
                         move.promotion = chess.QUEEN
                     move_is_legal = move in self._board.legal_moves  # save result to not use two locks
-                    if move_is_legal:
+                    if move_is_legal and move.promotion is not None:
                         move.promotion = self._hwi.promotion_piece()
 
                 if move_is_legal:

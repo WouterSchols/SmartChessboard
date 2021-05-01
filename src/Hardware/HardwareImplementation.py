@@ -26,17 +26,17 @@ class HardwareImplementation(HardwareInterface.HardwareInterface):
         """
         i2c = busio.I2C(board.SCL, board.SDA)
         tca = adafruit_tca9548a.TCA9548A(i2c, address=0x71)
-        self._perform_safe = safe_decorator.perform_safe_factory(lambda: setattr(tca.i2c, '_reset', False))
-        self._lcd = self._perform_safe(lambda : character_lcd.Character_LCD_I2C(tca[6], 16, 2, address=0x27))
+        self._perform_safe = safe_decorator.perform_safe_factory(lambda: setattr(tca.i2c, '_locked', False))
+        self._lcd = self._perform_safe(lambda: character_lcd.Character_LCD_I2C(tca[6], 16, 2, address=0x27))
         self._perform_safe(setattr)(self._lcd, "backlight", True)
 
-        mcp = [self._perform_safe(lambda i: MCP23017(self.tca[i], address=0x20))(i) for i in range(4)]
+        mcp = [self._perform_safe(lambda i: MCP23017(tca[i], address=0x20))(i) for i in range(4)]
 
         # Initialize reed matrix
         for file in range(8):
             for rank in range(8):
-                pinId = file if rank % 2 == 0 else 15 - file
-                self._board_reed[file][rank] = self._perform_safe(mcp[rank // 2].get_pin)(pinId)
+                pin_id = file if rank % 2 == 0 else 15 - file
+                self._board_reed[file][rank] = self._perform_safe(mcp[rank // 2].get_pin)(pin_id)
                 self._perform_safe(setattr)(self._board_reed[file][rank], "direction", digitalio.Direction.INPUT)
                 self._perform_safe(setattr)(self._board_reed[file][rank], "pull", digitalio.Pull.UP)
 
@@ -107,7 +107,7 @@ class HardwareImplementation(HardwareInterface.HardwareInterface):
     def game_end_offers(self) -> HardwareInterface.Offer:
         """ Returns continue, draw or return offers
             If no button pressed returns continue, otherwise wait for confirmation
-        :return: return input offer
+        :return: Always returns continue
         """
         if self._perform_safe(getattr)(self._buttons[0], 'value'):
             while True:
@@ -120,7 +120,7 @@ class HardwareImplementation(HardwareInterface.HardwareInterface):
                 if self._perform_safe(getattr)(self._buttons[4], 'value'):
                     return HardwareInterface.Offer.DRAW
                 if self._perform_safe(getattr)(self._buttons[3], 'value'):
-                    return HardwareInterface.Offer.CONTINUE
+                    return HardwareInterface.Offer.DRAW
         return HardwareInterface.Offer.CONTINUE
 
     def display(self, txt: str):
@@ -161,12 +161,11 @@ class LedWrapper:
         :param squares: 8x8 matrix with the squares to be marked
         """
 
-        def set_LED(rank: int, file: int, val: bool):
-            """ Turns on LED at position rank, file on or of
-            :param rank: rank to turn on
-            :param file: file to turn on
-            :param val: True iff LED should be on
-
+        def set_led(rank: int, file: int, val: bool):
+            """ Turn LED at position rank, file on iff val
+            :param rank: rank of LED to turn
+            :param file: file of LED to turn
+            :param val: turns on LED iff val is True
             """
             self._ht16k33[rank, file] = val
 
@@ -185,6 +184,7 @@ class LedWrapper:
 
                 # Turn LED on or off
                 if file == 0:
-                    self._perform_safe(setattr)(self._column[8-rank], 'value', value)  # _column[8 - rank].value = True
+                    self._perform_safe(setattr)(self._column[8 - rank], 'value',
+                                                value)  # _column[8 - rank].value = True
                 else:
-                    self._perform_safe(set_LED)(8 - rank, file - 1, value)  # _ht16k33[7 - rank][file - 1]=True
+                    self._perform_safe(set_led)(8 - rank, file - 1, value)  # _ht16k33[7 - rank][file - 1]=True
