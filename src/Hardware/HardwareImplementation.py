@@ -5,6 +5,7 @@ import board
 import busio
 import digitalio
 import adafruit_tca9548a
+import adafruit_character_lcd.character_lcd_i2c as character_lcd
 from adafruit_ht16k33 import matrix
 from adafruit_mcp230xx.mcp23017 import MCP23017
 
@@ -26,6 +27,8 @@ class HardwareImplementation(HardwareInterface.HardwareInterface):
         i2c = busio.I2C(board.SCL, board.SDA)
         self.tca = adafruit_tca9548a.TCA9548A(i2c, address=0x71)
         # self._perform_safe = safe_decorator.perform_safe_factory(lambda: setattr(tca.i2c, '_reset', False))
+        self.lcd = character_lcd.Character_LCD_I2C(tca[6], 16, 2, address=0x27)
+        cd.backlight = True
 
         mcp = [self._perform_safe(lambda i: MCP23017(self.tca[i], address=0x20))(i) for i in range(4)]
 
@@ -135,6 +138,13 @@ class HardwareImplementation(HardwareInterface.HardwareInterface):
                 if self._perform_safe(getattr)(self._buttons[3], 'value'):
                     return HardwareInterface.Offer.DRAW
         return HardwareInterface.Offer.CONTINUE
+
+    def display(self, txt: str):
+        """ Displays text string on hardware
+        :param txt: text to display on hardware
+        """
+        lcd.message = "txt"
+        print(txt)
 
     class LedWrapper:
         """" Wraps LED hardware """
