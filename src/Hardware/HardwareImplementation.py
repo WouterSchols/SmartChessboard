@@ -26,7 +26,7 @@ class HardwareImplementation(HardwareInterface.HardwareInterface):
         """
         i2c = busio.I2C(board.SCL, board.SDA)
         self.tca = adafruit_tca9548a.TCA9548A(i2c, address=0x71)
-        self._perform_safe = safe_decorator.perform_safe_factory(lambda: setattr(tca.i2c, '_reset', False))
+        self._perform_safe = safe_decorator.perform_safe_factory(lambda: setattr(self.tca.i2c, '_locked', False))
         self._lcd = self._perform_safe(lambda : character_lcd.Character_LCD_I2C(self.tca[6], 16, 2, address=0x27))
         self._perform_safe(setattr)(self._lcd, "backlight", True)
 
@@ -52,21 +52,21 @@ class HardwareImplementation(HardwareInterface.HardwareInterface):
         self._led_wrapper = LedWrapper(matrix.MatrixBackpack16x8(self.tca[4]),led_input_mcp,self._perform_safe)
         self._led_wrapper.clear()
 
-    # def _perform_safe(self, func: Callable[[Any], Any]) -> Callable[[Any], Any]:
-    #     def safe_wrapper(*args, **kwargs):
-    #         tries = 0
-    #         while True:
-    #             try:
-    #                 return func(*args, **kwargs)
-    #             except OSError:
-    #                 print("error" + str(tries + 1))
-    #                 if tries < 10:
-    #                     tries += 1
-    #                     self.tca.i2c._reset = False
-    #                 else:
-    #                     raise
-    #
-    #     return safe_wrapper
+
+    '''def _perform_safe(self, func: Callable[[Any], Any]) -> Callable[[Any], Any]:
+        def safe_wrapper(*args, **kwargs):
+            tries = 0
+            while True:
+                try:
+                    return func(*args, **kwargs)
+                except OSError:
+                    print("error" + str(tries + 1))
+                    if tries < 10:
+                        tries += 1
+                        self.tca.i2c._reset = False
+                    else:
+                        raise
+        return safe_wrapper'''
 
     def __del__(self):
         """ Turn of LED before shutting down """
@@ -143,8 +143,8 @@ class HardwareImplementation(HardwareInterface.HardwareInterface):
         """ Displays text string on hardware
         :param txt: text to display on hardware
         """
-        self._perform_safe(set_attr)(self._lcd, "message", txt)
-        print(txt)
+        self._perform_safe(setattr)(self._lcd, "message", txt)
+        #print(txt)
 
 class LedWrapper:
     """" Wraps LED hardware """
