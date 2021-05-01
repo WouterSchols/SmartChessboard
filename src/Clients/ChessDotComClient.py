@@ -1,5 +1,4 @@
 from typing import Optional, Tuple
-
 import chess
 import time
 from datetime import timedelta

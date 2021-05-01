@@ -1,29 +1,26 @@
 import setuptools
+import Hardware.setup
 
 setuptools.setup(
     name='SmartChessboard',
-    version='0.1',
+    version='1.0',
     package_dir={'': 'src'},
     packages=setuptools.find_packages(where='src'),
     url='https://github.com/WouterSchols/SmartChessboard',
     license='',
     author='wouter',
-    author_email='',
     description='Framework for smart chessboard',
     install_requires=[
-        'args',
+        'PySimpleGUI',
         'chess',
-        'clint',
-        'numpy',
-        'pyftdi',
-        'pyserial',
-        'pyusb',
+        'time',
+        'typing',
+        'datetime',
         'selenium',
-        'urllib3',
-        'PySimpleGUI'],
+        'threading',
+        'copy'
+    ],
     tests_require=[
         'mock'
     ],
-    test_suite="tests",
-
-)
+    test_suite="tests")
