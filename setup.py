@@ -32,9 +32,11 @@ setuptools.setup(
         'selenium',
         'setuptools',
         'sysv-ipc',
-        'urllib3'
-    ],
+        'clint',
+        'selenium',
+        'urllib3'],
     tests_require=[
         'mock'
     ],
     test_suite="tests")
+
