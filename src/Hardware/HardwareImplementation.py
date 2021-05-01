@@ -26,7 +26,7 @@ class HardwareImplementation(HardwareInterface.HardwareInterface):
         """
         i2c = busio.I2C(board.SCL, board.SDA)
         self.tca = adafruit_tca9548a.TCA9548A(i2c, address=0x71)
-        # self._perform_safe = safe_decorator.perform_safe_factory(lambda: setattr(tca.i2c, '_reset', False))
+        self._perform_safe = safe_decorator.perform_safe_factory(lambda: setattr(tca.i2c, '_reset', False))
         self._lcd = self._perform_safe(lambda : character_lcd.Character_LCD_I2C(self.tca[6], 16, 2, address=0x27))
         self._perform_safe(setattr)(self._lcd, "backlight", True)
 
@@ -49,24 +49,24 @@ class HardwareImplementation(HardwareInterface.HardwareInterface):
             self._perform_safe(setattr)(self._buttons[-1], "pull", digitalio.Pull.UP)
 
         # Initialize LED matrix
-        self._led_wrapper = self.LedWrapper(matrix.MatrixBackpack16x8(self.tca[4]),led_input_mcp,self._perform_safe)
+        self._led_wrapper = LedWrapper(matrix.MatrixBackpack16x8(self.tca[4]),led_input_mcp,self._perform_safe)
         self._led_wrapper.clear()
 
-    def _perform_safe(self, func: Callable[[Any], Any]) -> Callable[[Any], Any]:
-        def safe_wrapper(*args, **kwargs):
-            tries = 0
-            while True:
-                try:
-                    return func(*args, **kwargs)
-                except OSError:
-                    print("error" + str(tries + 1))
-                    if tries < 10:
-                        tries += 1
-                        self.tca.i2c._reset = False
-                    else:
-                        raise
-
-        return safe_wrapper
+    # def _perform_safe(self, func: Callable[[Any], Any]) -> Callable[[Any], Any]:
+    #     def safe_wrapper(*args, **kwargs):
+    #         tries = 0
+    #         while True:
+    #             try:
+    #                 return func(*args, **kwargs)
+    #             except OSError:
+    #                 print("error" + str(tries + 1))
+    #                 if tries < 10:
+    #                     tries += 1
+    #                     self.tca.i2c._reset = False
+    #                 else:
+    #                     raise
+    #
+    #     return safe_wrapper
 
     def __del__(self):
         """ Turn of LED before shutting down """
@@ -146,56 +146,56 @@ class HardwareImplementation(HardwareInterface.HardwareInterface):
         self._perform_safe(set_attr)(self._lcd, "message", txt)
         print(txt)
 
-    class LedWrapper:
-        """" Wraps LED hardware """
+class LedWrapper:
+    """" Wraps LED hardware """
 
-        def __init__(self, ht16k33: matrix.MatrixBackpack16x8, mcp: MCP23017, perform_safe):
-            """ Initializes the led matrix using the ht16k33 and MCP23017
+    def __init__(self, ht16k33: matrix.MatrixBackpack16x8, mcp: MCP23017, perform_safe):
+        """ Initializes the led matrix using the ht16k33 and MCP23017
 
-            :param ht16k33: ht16k33 instance controlling a 8x9 led matrix
-            :param mcp: MCP23017 instance controlling the left most row of LED
-            """
-            self._ht16k33 = ht16k33
-            self._perform_safe = perform_safe
-            self._column = [self._perform_safe(lambda i: mcp.get_pin(i))(i) for i in range(0, 9)]
-            for pin in self._column:
-                self._perform_safe(setattr)(pin, 'direction', digitalio.Direction.OUTPUT)  # pin.direction = OUTPUT
-                self._perform_safe(setattr)(pin, 'value', False)  # pin.value = False
-            self.clear()
+        :param ht16k33: ht16k33 instance controlling a 8x9 led matrix
+        :param mcp: MCP23017 instance controlling the left most row of LED
+        """
+        self._ht16k33 = ht16k33
+        self._perform_safe = perform_safe
+        self._column = [self._perform_safe(lambda i: mcp.get_pin(i))(i) for i in range(0, 9)]
+        for pin in self._column:
+            self._perform_safe(setattr)(pin, 'direction', digitalio.Direction.OUTPUT)  # pin.direction = OUTPUT
+            self._perform_safe(setattr)(pin, 'value', False)  # pin.value = False
+        self.clear()
 
-        def clear(self):
-            """ Clears all square on the chessboard """
-            self._perform_safe(self._ht16k33.fill)(0)  # squares.fill(0)
-            for led in self._column:
-                self._perform_safe(setattr)(led, 'value', False)  # led.value = False
+    def clear(self):
+        """ Clears all square on the chessboard """
+        self._perform_safe(self._ht16k33.fill)(0)  # squares.fill(0)
+        for led in self._column:
+            self._perform_safe(setattr)(led, 'value', False)  # led.value = False
 
-        def set_squares(self, squares: List[List[bool]]):
-            """ Marks squares on the chessboard
+    def set_squares(self, squares: List[List[bool]]):
+        """ Marks squares on the chessboard
 
-            Improvement on calling clear() then marking all squires since this prevents a flickering of the LED
-            :param squares: 8x8 matrix with the squares to be marked
-            """
+        Improvement on calling clear() then marking all squires since this prevents a flickering of the LED
+        :param squares: 8x8 matrix with the squares to be marked
+        """
 
-            def set_LED(rank, file, val):
-                """ Safely turns on LED at position rank, file """
-                self._ht16k33[rank, file] = val
+        def set_LED(rank, file, val):
+            """ Safely turns on LED at position rank, file """
+            self._ht16k33[rank, file] = val
 
-            for file in range(9):
-                for rank in range(9):
-                    # Check of LED should be turned on
-                    value = False
-                    if file > 0 and rank > 0:
-                        value = squares[file - 1][rank - 1]
-                    if not value and file < 8 and rank > 0:
-                        value = squares[file][rank - 1]
-                    if not value and file > 0 and rank < 8:
-                        value = squares[file - 1][rank]
-                    if not value and file < 8 and rank < 8:
-                        value = squares[file][rank]
+        for file in range(9):
+            for rank in range(9):
+                # Check of LED should be turned on
+                value = False
+                if file > 0 and rank > 0:
+                    value = squares[file - 1][rank - 1]
+                if not value and file < 8 and rank > 0:
+                    value = squares[file][rank - 1]
+                if not value and file > 0 and rank < 8:
+                    value = squares[file - 1][rank]
+                if not value and file < 8 and rank < 8:
+                    value = squares[file][rank]
 
-                    # Turn LED on or off
-                    if file == 0:
-                        self._perform_safe(setattr)(self._column[8 - rank], 'value',
-                                                    value)  # _column[8 - rank].value = True
-                    else:
-                        self._perform_safe(set_LED)(8 - rank, file - 1, value)  # _ht16k33[7 - rank][file - 1]=True
+                # Turn LED on or off
+                if file == 0:
+                    self._perform_safe(setattr)(self._column[8 - rank], 'value',
+                                                value)  # _column[8 - rank].value = True
+                else:
+                    self._perform_safe(set_LED)(8 - rank, file - 1, value)  # _ht16k33[7 - rank][file - 1]=True
