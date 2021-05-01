@@ -32,19 +32,34 @@ def play(white: ClientInterface.ClientInterface, black: ClientInterface.ClientIn
             play(new_opponent, new_player)
         else:
             play(new_player, new_opponent)
+class TEMP:
+    store = 1
 
+    def test(self):
+        if self.store <= 3:
+            self.store += 1
+            raise OSError
+        else:
+            store = 0
+
+
+from Hardware import safe_decorator
 
 if __name__ == '__main__':
-    while True:
-        opponent = gui.get_opponent_from_gui()
-        if opponent is None:
-            break
-        if opponent.color is chess.WHITE:
-            player = HardwareClient.HardwareClient(chess.BLACK) if successful_import else \
-                ConsoleClient.ConsoleClient(chess.BLACK)
-            play(opponent, player)
-        else:
-            player = HardwareClient.HardwareClient(chess.WHITE) if successful_import else \
-                ConsoleClient.ConsoleClient(chess.WHITE)
-            play(player, opponent)
+    cl = TEMP()
+    temp = safe_decorator.perform_safe_factory(lambda : print("error"))
+    temp(cl.test)()
+    temp(cl.test)()
+    # while True:
+    #     opponent = gui.get_opponent_from_gui()
+    #     if opponent is None:
+    #         break
+    #     if opponent.color is chess.WHITE:
+    #         player = HardwareClient.HardwareClient(chess.BLACK) if successful_import else \
+    #             ConsoleClient.ConsoleClient(chess.BLACK)
+    #         play(opponent, player)
+    #     else:
+    #         player = HardwareClient.HardwareClient(chess.WHITE) if successful_import else \
+    #             ConsoleClient.ConsoleClient(chess.WHITE)
+    #         play(player, opponent)
 

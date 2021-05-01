@@ -25,9 +25,9 @@ class HardwareImplementation(HardwareInterface.HardwareInterface):
         - Sets up a 9x9 led_matrix with the interface LedWrapper which uses a HT16k33 and 1 MCP23017
         """
         i2c = busio.I2C(board.SCL, board.SDA)
-        self.tca = adafruit_tca9548a.TCA9548A(i2c, address=0x71)
+        tca = adafruit_tca9548a.TCA9548A(i2c, address=0x71)
         self._perform_safe = safe_decorator.perform_safe_factory(lambda: setattr(tca.i2c, '_reset', False))
-        self._lcd = self._perform_safe(lambda : character_lcd.Character_LCD_I2C(self.tca[6], 16, 2, address=0x27))
+        self._lcd = self._perform_safe(lambda : character_lcd.Character_LCD_I2C(tca[6], 16, 2, address=0x27))
         self._perform_safe(setattr)(self._lcd, "backlight", True)
 
         mcp = [self._perform_safe(lambda i: MCP23017(self.tca[i], address=0x20))(i) for i in range(4)]
@@ -40,7 +40,7 @@ class HardwareImplementation(HardwareInterface.HardwareInterface):
                 self._perform_safe(setattr)(self._board_reed[file][rank], "direction", digitalio.Direction.INPUT)
                 self._perform_safe(setattr)(self._board_reed[file][rank], "pull", digitalio.Pull.UP)
 
-        led_input_mcp = MCP23017(self.tca[5], address=0x20)
+        led_input_mcp = MCP23017(tca[5], address=0x20)
         # Map output buttons
         self._buttons = []
         for pinId in range(8, 13):
@@ -49,24 +49,8 @@ class HardwareImplementation(HardwareInterface.HardwareInterface):
             self._perform_safe(setattr)(self._buttons[-1], "pull", digitalio.Pull.UP)
 
         # Initialize LED matrix
-        self._led_wrapper = LedWrapper(matrix.MatrixBackpack16x8(self.tca[4]),led_input_mcp,self._perform_safe)
+        self._led_wrapper = LedWrapper(matrix.MatrixBackpack16x8(tca[4]), led_input_mcp, self._perform_safe)
         self._led_wrapper.clear()
-
-    # def _perform_safe(self, func: Callable[[Any], Any]) -> Callable[[Any], Any]:
-    #     def safe_wrapper(*args, **kwargs):
-    #         tries = 0
-    #         while True:
-    #             try:
-    #                 return func(*args, **kwargs)
-    #             except OSError:
-    #                 print("error" + str(tries + 1))
-    #                 if tries < 10:
-    #                     tries += 1
-    #                     self.tca.i2c._reset = False
-    #                 else:
-    #                     raise
-    #
-    #     return safe_wrapper
 
     def __del__(self):
         """ Turn of LED before shutting down """
@@ -123,7 +107,7 @@ class HardwareImplementation(HardwareInterface.HardwareInterface):
     def game_end_offers(self) -> HardwareInterface.Offer:
         """ Returns continue, draw or return offers
             If no button pressed returns continue, otherwise wait for confirmation
-        :return: Always returns continue
+        :return: return input offer
         """
         if self._perform_safe(getattr)(self._buttons[0], 'value'):
             while True:
@@ -136,7 +120,7 @@ class HardwareImplementation(HardwareInterface.HardwareInterface):
                 if self._perform_safe(getattr)(self._buttons[4], 'value'):
                     return HardwareInterface.Offer.DRAW
                 if self._perform_safe(getattr)(self._buttons[3], 'value'):
-                    return HardwareInterface.Offer.DRAW
+                    return HardwareInterface.Offer.CONTINUE
         return HardwareInterface.Offer.CONTINUE
 
     def display(self, txt: str):
@@ -145,6 +129,7 @@ class HardwareImplementation(HardwareInterface.HardwareInterface):
         """
         self._perform_safe(set_attr)(self._lcd, "message", txt)
         print(txt)
+
 
 class LedWrapper:
     """" Wraps LED hardware """
@@ -176,8 +161,13 @@ class LedWrapper:
         :param squares: 8x8 matrix with the squares to be marked
         """
 
-        def set_LED(rank, file, val):
-            """ Safely turns on LED at position rank, file """
+        def set_LED(rank: int, file: int, val: bool):
+            """ Turns on LED at position rank, file on or of
+            :param rank: rank to turn on
+            :param file: file to turn on
+            :param val: True iff LED should be on
+
+            """
             self._ht16k33[rank, file] = val
 
         for file in range(9):
@@ -195,7 +185,6 @@ class LedWrapper:
 
                 # Turn LED on or off
                 if file == 0:
-                    self._perform_safe(setattr)(self._column[8 - rank], 'value',
-                                                value)  # _column[8 - rank].value = True
+                    self._perform_safe(setattr)(self._column[8-rank], 'value', value)  # _column[8 - rank].value = True
                 else:
                     self._perform_safe(set_LED)(8 - rank, file - 1, value)  # _ht16k33[7 - rank][file - 1]=True

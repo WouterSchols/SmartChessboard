@@ -1,6 +1,8 @@
 from time import sleep
 import sys
 import os.path
+from Hardware.HardwareInterface import Offer
+import chess
 
 sys.path.insert(1, os.path.abspath(os.path.join(os.path.dirname(os.path.dirname(__file__)), os.path.pardir)))
 print(sys.path)
@@ -40,16 +42,42 @@ def detect_and_mark_test():
         hi.mark_squares(hi.get_occupancy())
         sleep(1)
 
+def promote_test():
+    """ Detects promotion """
+    hi = HardwareImplementation()
+    while True:
+        piece = hi.promotion_piece()
+        print(chess.piece_name(piece))
+        sleep(1)
+
+def game_end_offers():
+    """ Detects resignation and draw offers """
+    hi = HardwareImplementation()
+    while True:
+        offer = hi.game_end_offers()
+        if offer is offer.CONTINUE:
+            print("continue")
+        elif offer is offer.DRAW:
+            print("draw")
+        else:
+            print("resignation")
+        sleep(1)
 
 if __name__ == "__main__":
     print("1. mark_test")
     print("2. detect_test")
     print("3. detect_and_mark_test")
+    print("4. promote_test")
+    print("5. game_end_offers")
     print('-'*20)
-    inp = input("choice (1, 2, 3): ")
+    inp = input("choice (1, 2, 3, 4, 5): ")
     if int(inp) == 1:
         mark_test()
     if int(inp) == 2:
         detect_test()
     if int(inp) == 3:
         detect_and_mark_test()
+    if int(inp) == 4:
+        promote_test()
+    if int(inp) == 3:
+        game_end_offers()
