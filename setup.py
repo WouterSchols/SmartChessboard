@@ -1,5 +1,4 @@
 import setuptools
-import Hardware.setup
 
 setuptools.setup(
     name='SmartChessboard',
@@ -18,7 +17,8 @@ setuptools.setup(
         'datetime',
         'selenium',
         'threading',
-        'copy'
+        'copy',
+        'adafruit-circuitpython-charlcd'
     ],
     tests_require=[
         'mock'
