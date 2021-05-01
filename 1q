@@ -18,6 +18,7 @@ setuptools.setup(
         'datetime',
         'selenium',
         'threading',
+        'copy',
     ],
     tests_require=[
         'mock'

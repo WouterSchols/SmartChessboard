@@ -13,7 +13,7 @@ setuptools.setup(
         'busio',
         'digitalio',
         'adafruit_tca9548a',
-        'adafruit_character_lcd.character_lcd_i2c',
         'adafruit_ht16k33',
+        'adafruit-circuitpython-charlcd',
         'adafruit_mcp230xx.mcp23017']
 )
