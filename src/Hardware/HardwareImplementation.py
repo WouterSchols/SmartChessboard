@@ -27,8 +27,8 @@ class HardwareImplementation(HardwareInterface.HardwareInterface):
         i2c = busio.I2C(board.SCL, board.SDA)
         self.tca = adafruit_tca9548a.TCA9548A(i2c, address=0x71)
         # self._perform_safe = safe_decorator.perform_safe_factory(lambda: setattr(tca.i2c, '_reset', False))
-        self.lcd = character_lcd.Character_LCD_I2C(tca[6], 16, 2, address=0x27)
-        cd.backlight = True
+        self._lcd = self._perform_safe(lambda : character_lcd.Character_LCD_I2C(self.tca[6], 16, 2, address=0x27))
+        self._perform_safe(setattr)(self._lcd, "backlight", True)
 
         mcp = [self._perform_safe(lambda i: MCP23017(self.tca[i], address=0x20))(i) for i in range(4)]
 
@@ -44,12 +44,12 @@ class HardwareImplementation(HardwareInterface.HardwareInterface):
         # Map output buttons
         self._buttons = []
         for pinId in range(8, 13):
-            self._buttons.append(self._perform_safe(mcp[6].get_pin)(pinId))
+            self._buttons.append(self._perform_safe(led_input_mcp.get_pin)(pinId))
             self._perform_safe(setattr)(self._buttons[-1], "direction", digitalio.Direction.INPUT)
             self._perform_safe(setattr)(self._buttons[-1], "pull", digitalio.Pull.UP)
 
         # Initialize LED matrix
-        self._led_wrapper = LedWrapper(matrix.MatrixBackpack16x8(self.tca[4]),led_input_mcp)
+        self._led_wrapper = self.LedWrapper(matrix.MatrixBackpack16x8(self.tca[4]),led_input_mcp,self._perform_safe)
         self._led_wrapper.clear()
 
     def _perform_safe(self, func: Callable[[Any], Any]) -> Callable[[Any], Any]:
@@ -59,10 +59,10 @@ class HardwareImplementation(HardwareInterface.HardwareInterface):
                 try:
                     return func(*args, **kwargs)
                 except OSError:
-                    if tries < max_tries:
+                    print("error" + str(tries + 1))
+                    if tries < 10:
                         tries += 1
-                        if reset is not None:
-                            self.tca.i2c._reset = False
+                        self.tca.i2c._reset = False
                     else:
                         raise
 
@@ -143,20 +143,20 @@ class HardwareImplementation(HardwareInterface.HardwareInterface):
         """ Displays text string on hardware
         :param txt: text to display on hardware
         """
-        lcd.message = "txt"
+        self._perform_safe(set_attr)(self._lcd, "message", txt)
         print(txt)
 
     class LedWrapper:
         """" Wraps LED hardware """
 
-        def __init__(self, ht16k33: matrix.MatrixBackpack16x8, mcp: MCP23017):
+        def __init__(self, ht16k33: matrix.MatrixBackpack16x8, mcp: MCP23017, perform_safe):
             """ Initializes the led matrix using the ht16k33 and MCP23017
 
             :param ht16k33: ht16k33 instance controlling a 8x9 led matrix
             :param mcp: MCP23017 instance controlling the left most row of LED
             """
             self._ht16k33 = ht16k33
-            # self._perform_safe = perform_safe
+            self._perform_safe = perform_safe
             self._column = [self._perform_safe(lambda i: mcp.get_pin(i))(i) for i in range(0, 9)]
             for pin in self._column:
                 self._perform_safe(setattr)(pin, 'direction', digitalio.Direction.OUTPUT)  # pin.direction = OUTPUT
