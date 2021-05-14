@@ -1,0 +1,351 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hardware package &#8212; Smart Chess Board 1.0 documentation</title>
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css" />
+    
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Clients package" href="Clients.html" />
+    <link rel="prev" title="GUI package" href="GUI.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="Clients.html" title="Clients package"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="GUI.html" title="GUI package"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Smart Chess Board 1.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="SoftwareDocumentation.html" accesskey="U">Software documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Hardware package</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="hardware-package">
+<h1>Hardware package<a class="headerlink" href="#hardware-package" title="Permalink to this headline">¶</a></h1>
+<p>The hardware package contains all software required to interface with the hardware</p>
+<div class="section" id="module-Hardware.HardwareInterface">
+<span id="hardware-hardwareinterface"></span><h2>Hardware.HardwareInterface<a class="headerlink" href="#module-Hardware.HardwareInterface" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="Hardware.HardwareInterface.Offer">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">Hardware.HardwareInterface.</span></code><code class="sig-name descname"><span class="pre">Offer</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Hardware/HardwareInterface.html#Offer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Hardware.HardwareInterface.Offer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">enum.Enum</span></code></p>
+<p>An enumeration.</p>
+<dl class="py attribute">
+<dt id="Hardware.HardwareInterface.Offer.CONTINUE">
+<code class="sig-name descname"><span class="pre">CONTINUE</span></code><em class="property"> <span class="pre">=</span> <span class="pre">0</span></em><a class="headerlink" href="#Hardware.HardwareInterface.Offer.CONTINUE" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="Hardware.HardwareInterface.Offer.DRAW">
+<code class="sig-name descname"><span class="pre">DRAW</span></code><em class="property"> <span class="pre">=</span> <span class="pre">1</span></em><a class="headerlink" href="#Hardware.HardwareInterface.Offer.DRAW" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="Hardware.HardwareInterface.Offer.RESIGN">
+<code class="sig-name descname"><span class="pre">RESIGN</span></code><em class="property"> <span class="pre">=</span> <span class="pre">2</span></em><a class="headerlink" href="#Hardware.HardwareInterface.Offer.RESIGN" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="Hardware.HardwareInterface.HardwareInterface">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">Hardware.HardwareInterface.</span></code><code class="sig-name descname"><span class="pre">HardwareInterface</span></code><a class="reference internal" href="_modules/Hardware/HardwareInterface.html#HardwareInterface"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Hardware.HardwareInterface.HardwareInterface" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">abc.ABC</span></code></p>
+<p>Defines interface to the hardware</p>
+<dl class="py method">
+<dt id="Hardware.HardwareInterface.HardwareInterface.mark_squares">
+<em class="property"><span class="pre">abstract</span> </em><code class="sig-name descname"><span class="pre">mark_squares</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">squares</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">bool</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="_modules/Hardware/HardwareInterface.html#HardwareInterface.mark_squares"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Hardware.HardwareInterface.HardwareInterface.mark_squares" title="Permalink to this definition">¶</a></dt>
+<dd><p>Marks squares on the chessboard where squares is an 8x8 matrix implemented as a 2s list</p>
+<p>Note that squares are mapped as squares[file][rank] ie. a1 = squares[0][0], a2 = squares[0][1],
+b1 = squares[1][0] and h8 = squares[7][7]</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>squares</strong> – 8x8 matrix of squares to mark on the chessboard where square [file][rank]         is marked if square[file][rank] == TRUE</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="Hardware.HardwareInterface.HardwareInterface.get_occupancy">
+<em class="property"><span class="pre">abstract</span> </em><code class="sig-name descname"><span class="pre">get_occupancy</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">bool</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><a class="reference internal" href="_modules/Hardware/HardwareInterface.html#HardwareInterface.get_occupancy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Hardware.HardwareInterface.HardwareInterface.get_occupancy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns all occupied squares as 8x8 matrix implemented as a 2d list</p>
+<p>Note that squares are mapped as squares[file][rank] so if square a2 is occupied then
+get_occupancy[0][1] equals TRUE
+:return: 8x8 matrix with all occupied squares on the chessboard</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="Hardware.HardwareInterface.HardwareInterface.promotion_piece">
+<code class="sig-name descname"><span class="pre">promotion_piece</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">chess.Piece</span><a class="reference internal" href="_modules/Hardware/HardwareInterface.html#HardwareInterface.promotion_piece"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Hardware.HardwareInterface.HardwareInterface.promotion_piece" title="Permalink to this definition">¶</a></dt>
+<dd><p>Which piece to promote to</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Piece to promote to if not reimplemented returns queen</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="Hardware.HardwareInterface.HardwareInterface.game_end_offers">
+<code class="sig-name descname"><span class="pre">game_end_offers</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#Hardware.HardwareInterface.Offer" title="Hardware.HardwareInterface.Offer"><span class="pre">Hardware.HardwareInterface.Offer</span></a><a class="reference internal" href="_modules/Hardware/HardwareInterface.html#HardwareInterface.game_end_offers"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Hardware.HardwareInterface.HardwareInterface.game_end_offers" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns continue, draw or return offers</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Always returns continue</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="Hardware.HardwareInterface.HardwareInterface.display">
+<code class="sig-name descname"><span class="pre">display</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">txt</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Hardware/HardwareInterface.html#HardwareInterface.display"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Hardware.HardwareInterface.HardwareInterface.display" title="Permalink to this definition">¶</a></dt>
+<dd><p>Displays text string on hardware</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>txt</strong> – text to display on hardware</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-Hardware.HardwareImplementation">
+<span id="hardware-hardwareimplementation"></span><h2>Hardware.HardwareImplementation<a class="headerlink" href="#module-Hardware.HardwareImplementation" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="Hardware.HardwareImplementation.HardwareImplementation">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">Hardware.HardwareImplementation.</span></code><code class="sig-name descname"><span class="pre">HardwareImplementation</span></code><a class="reference internal" href="_modules/Hardware/HardwareImplementation.html#HardwareImplementation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Hardware.HardwareImplementation.HardwareImplementation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#Hardware.HardwareInterface.HardwareInterface" title="Hardware.HardwareInterface.HardwareInterface"><code class="xref py py-class docutils literal notranslate"><span class="pre">Hardware.HardwareInterface.HardwareInterface</span></code></a></p>
+<p>Interface to Hardware chessboard</p>
+<dl class="py method">
+<dt id="Hardware.HardwareImplementation.HardwareImplementation.mark_squares">
+<code class="sig-name descname"><span class="pre">mark_squares</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">squares</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">bool</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="_modules/Hardware/HardwareImplementation.html#HardwareImplementation.mark_squares"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Hardware.HardwareImplementation.HardwareImplementation.mark_squares" title="Permalink to this definition">¶</a></dt>
+<dd><p>Marks squares on the chessboard where squares is an 8x8 matrix implemented as a 2s list</p>
+<p>Note that squares are mapped as squares[file][rank] ie. a1 = squares[0][0], a2 = squares[0][1],         b1 = squares[1][0] and h8 is squares[7][7]</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>squares</strong> – 8x8 matrix of squares to mark on the chessboard where square [file][rank]         is marked if square[file][rank] == TRUE</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="Hardware.HardwareImplementation.HardwareImplementation.get_occupancy">
+<code class="sig-name descname"><span class="pre">get_occupancy</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">bool</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><a class="reference internal" href="_modules/Hardware/HardwareImplementation.html#HardwareImplementation.get_occupancy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Hardware.HardwareImplementation.HardwareImplementation.get_occupancy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns all occupied squares as 8x8 matrix implemented as a 2d list</p>
+<p>Note that squares are mapped as squares[file][rank] so if square a2 is occupied then get_occupancy[0][1] is TRUE</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>8x8 matrix with all occupied squares on the chessboard</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="Hardware.HardwareImplementation.HardwareImplementation.promotion_piece">
+<code class="sig-name descname"><span class="pre">promotion_piece</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">chess.Piece</span><a class="reference internal" href="_modules/Hardware/HardwareImplementation.html#HardwareImplementation.promotion_piece"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Hardware.HardwareImplementation.HardwareImplementation.promotion_piece" title="Permalink to this definition">¶</a></dt>
+<dd><p>Which piece to promote to</p>
+<p>Reads input button to select promotion piece, writes selected piece to display and waits for confirmation</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Piece to promote to</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="Hardware.HardwareImplementation.HardwareImplementation.game_end_offers">
+<code class="sig-name descname"><span class="pre">game_end_offers</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#Hardware.HardwareInterface.Offer" title="Hardware.HardwareInterface.Offer"><span class="pre">Hardware.HardwareInterface.Offer</span></a><a class="reference internal" href="_modules/Hardware/HardwareImplementation.html#HardwareImplementation.game_end_offers"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Hardware.HardwareImplementation.HardwareImplementation.game_end_offers" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns continue, draw or return offers</p>
+<p>If no button pressed returns continue, otherwise wait for confirmation</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Always returns continue</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="Hardware.HardwareImplementation.HardwareImplementation.display">
+<code class="sig-name descname"><span class="pre">display</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">txt</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Hardware/HardwareImplementation.html#HardwareImplementation.display"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Hardware.HardwareImplementation.HardwareImplementation.display" title="Permalink to this definition">¶</a></dt>
+<dd><p>Displays text string on hardware</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>txt</strong> – text to display on hardware</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="Hardware.HardwareImplementation.LedWrapper">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">Hardware.HardwareImplementation.</span></code><code class="sig-name descname"><span class="pre">LedWrapper</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ht16k33</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">adafruit_ht16k33.matrix.MatrixBackpack16x8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mcp</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">adafruit_mcp230xx.mcp23017.MCP23017</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">perform_safe</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Hardware/HardwareImplementation.html#LedWrapper"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Hardware.HardwareImplementation.LedWrapper" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>” Wraps LED hardware</p>
+<dl class="py method">
+<dt id="Hardware.HardwareImplementation.LedWrapper.clear">
+<code class="sig-name descname"><span class="pre">clear</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Hardware/HardwareImplementation.html#LedWrapper.clear"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Hardware.HardwareImplementation.LedWrapper.clear" title="Permalink to this definition">¶</a></dt>
+<dd><p>Clears all square on the chessboard</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="Hardware.HardwareImplementation.LedWrapper.set_squares">
+<code class="sig-name descname"><span class="pre">set_squares</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">squares</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">bool</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Hardware/HardwareImplementation.html#LedWrapper.set_squares"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Hardware.HardwareImplementation.LedWrapper.set_squares" title="Permalink to this definition">¶</a></dt>
+<dd><p>Marks squares on the chessboard</p>
+<p>Improvement on calling clear() then marking all squires since this prevents a flickering of the LED</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>squares</strong> – 8x8 matrix with the squares to be marked</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-Hardware.SafeDecorator">
+<span id="hardware-safedecorator"></span><h2>Hardware.SafeDecorator<a class="headerlink" href="#module-Hardware.SafeDecorator" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt id="Hardware.SafeDecorator.perform_safe_factory">
+<code class="sig-prename descclassname"><span class="pre">Hardware.SafeDecorator.</span></code><code class="sig-name descname"><span class="pre">perform_safe_factory</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reset</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">None</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">None</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_tries</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">5</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><a class="reference internal" href="_modules/Hardware/SafeDecorator.html#perform_safe_factory"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Hardware.SafeDecorator.perform_safe_factory" title="Permalink to this definition">¶</a></dt>
+<dd><p>Factory to create a decorator to perform an i2c operation safely</p>
+<p>This factory returns the perform_safe decorator. This decorator will try to execute a function until it succeeds
+or until max_tries have failed. If a tca is supplied then the factory will also reset the tca lock
+after every SOError.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>reset</strong> – Any other function to execute when recovering from an error</p></li>
+<li><p><strong>max_tries</strong> – Maximum amount of times that an operation will be attempted</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The decorator perform safe</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="Hardware.SafeDecorator.perform_safe">
+<code class="sig-prename descclassname"><span class="pre">Hardware.SafeDecorator.</span></code><code class="sig-name descname"><span class="pre">perform_safe</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">func</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><a class="headerlink" href="#Hardware.SafeDecorator.perform_safe" title="Permalink to this definition">¶</a></dt>
+<dd><p>” Tries to execute func until no OSError is thrown or TRIES attempts have failed</p>
+<p>The i2c buss is sensitive to noise. Corrupted messages can trigger an OSError on the buss device.
+We can recover from this error by simply resending the message until it arrives correctly. This method accepts
+a function func which could trigger an OSError which would cause the program to fail.
+We can easily recover from this error by retrying ‘func’ if the error is cause by noise. The perform
+safe decorator makes sure that an error is only trow if the operation fails max_tries times. Because of an
+error in the adafruit libraries the tca can soft lock after an exception. Resetting the lock to false after
+an exception prevents the errors</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>func</strong> – function to be executed</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>function which executes func until it either succeeds or max_tries attempts have failed</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>Same as func</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Hardware package</a><ul>
+<li><a class="reference internal" href="#module-Hardware.HardwareInterface">Hardware.HardwareInterface</a></li>
+<li><a class="reference internal" href="#module-Hardware.HardwareImplementation">Hardware.HardwareImplementation</a></li>
+<li><a class="reference internal" href="#module-Hardware.SafeDecorator">Hardware.SafeDecorator</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="GUI.html"
+                        title="previous chapter">GUI package</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="Clients.html"
+                        title="next chapter">Clients package</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/Hardware.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="Clients.html" title="Clients package"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="GUI.html" title="GUI package"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Smart Chess Board 1.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="SoftwareDocumentation.html" >Software documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Hardware package</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021, Wouter Schols.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.4.
+    </div>
+  </body>
+</html>

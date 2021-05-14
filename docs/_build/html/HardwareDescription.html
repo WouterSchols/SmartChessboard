@@ -1,0 +1,269 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hardware description &#8212; Smart Chess Board 1.0 documentation</title>
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css" />
+    
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Software structure" href="Software.html" />
+    <link rel="prev" title="Interface Implementation" href="InterfaceImplementation.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="Software.html" title="Software structure"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="InterfaceImplementation.html" title="Interface Implementation"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Smart Chess Board 1.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Hardware description</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="hardware-description">
+<h1>Hardware description<a class="headerlink" href="#hardware-description" title="Permalink to this headline">¶</a></h1>
+<p>There are various ways to create the hardware for a smart chess board and the software will work with any implementation.
+This page we outline the hardware implementation used in the original project. In the original project it is detected if
+a square is occupied using reed switches. Reed switches close when a magnet is in its vicinity. We can detect pieces by
+putting a magnet in every piece and a reed switch below every square. When a square is occupied then the reed switch will
+close. This will close a circuit which we can use to detect the piece. We can track how pieces move over the board by
+detecting when squares become empty and when they become occupied. There is one problem, we cannot just connect 64 reed
+switches (and 64 LEDs) to a controller. This is where the I2C bus comes in.
+The I2C bus allows us to theoretically connect an infinite amount of devices using only 4 cables:</p>
+<ol class="arabic simple">
+<li><p>Power</p></li>
+<li><p>Ground</p></li>
+<li><p>SDA (Digital messages to all devices)</p></li>
+<li><p>SDL (The clock of the controller)</p></li>
+</ol>
+<p>We cannot directly connect analog signals from the reed switches and LEDs to the I2C bus. Instead of this we need
+components which convert digital signals to analog signals. There are a lot of different cheap components readily available.
+I have used the <a class="reference external" href="https://www.adafruit.com/product/1427">Adafruit HT33K16 matrix driver</a> to control most of the LED and
+and 5 <a class="reference external" href="https://www.adafruit.com/product/732">MCP23017</a> to control a few remaining LEDs and all reed switches. The
+MCP23017 are very useful components which can be controlled over the I2C bus. The MCP23017 has 16 analog channels which
+can both read input and send output. Note that brandless MCP23017 are available and a lot cheaper. My hardware design is
+largely based on the design suggested
+<a class="reference external" href="http://chess.fortherapy.co.uk/home/a-wooden-chess-computer/design-ideas-for-easy-to-build-beaglebone-black-chess-computer/">here</a>
+This site contains a very extensive explanation of the hardware design. In the remainder of this section I will only briefly
+discuss some important observations and some changes I made to the hardware design.</p>
+<div class="section" id="noisy-bus-problem">
+<h2>Noisy bus problem<a class="headerlink" href="#noisy-bus-problem" title="Permalink to this headline">¶</a></h2>
+<p>One problem you will most likely encounter is noise. Noise is when messages on the bus get send but get corrupted on the
+way. If many devices are connected to the I2C bus they might be sending messages at the same time. When two devices send a
+message at the same time then the messages can collide and both messages might become corrupted. This will result in a software error.
+Because the many devices will be connected to the bus these collisions are likely to occur. Next to this the magnets can
+also create noise. A very useful components is the <a class="reference external" href="https://www.adafruit.com/product/2717">TCA9548A I2C Multiplexer</a>.
+This device allows us to split one I2C channel into 8 channels which prevents collisions. However there is one very
+annoying bug in the library of this device. If you use the adafruit library then the multiplexer will softlock if an
+exception is thrown. You can prevent this by setting the variable <em>tca.i2c._locked</em> to <em>False</em> after an exception is thrown, ie:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">board</span>
+<span class="kn">import</span> <span class="nn">busio</span>
+<span class="kn">import</span> <span class="nn">digitalio</span>
+<span class="kn">import</span> <span class="nn">adafruit_tca9548a</span>
+
+<span class="n">i2c</span> <span class="o">=</span> <span class="n">busio</span><span class="o">.</span><span class="n">I2C</span><span class="p">(</span><span class="n">board</span><span class="o">.</span><span class="n">SCL</span><span class="p">,</span> <span class="n">board</span><span class="o">.</span><span class="n">SDA</span><span class="p">)</span>
+<span class="n">tca</span> <span class="o">=</span> <span class="n">adafruit_tca9548a</span><span class="o">.</span><span class="n">TCA9548A</span><span class="p">(</span><span class="n">i2c</span><span class="p">)</span>
+<span class="n">some_device</span> <span class="o">=</span> <span class="n">some_device</span><span class="p">(</span><span class="n">i2c</span> <span class="o">=</span> <span class="n">tca</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">address</span> <span class="o">=</span> <span class="mh">0x20</span><span class="p">)</span> <span class="c1"># device connected to channel 0 at address 0x20</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">seme_device</span><span class="o">.</span><span class="n">do_something</span><span class="p">()</span>
+<span class="k">except</span> <span class="ne">OSError</span><span class="p">:</span>
+    <span class="n">i2c</span><span class="o">.</span><span class="n">tca</span><span class="o">.</span><span class="n">_locked</span> <span class="o">=</span> <span class="kc">False</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="hardware-improvements">
+<h2>Hardware improvements<a class="headerlink" href="#hardware-improvements" title="Permalink to this headline">¶</a></h2>
+<p>All components will need to be connected. There are two kinds of wires which can be used, single core wire and stranded
+wire. Single core wire is a lot easier to handle and solder but it is not flexible. Stranded wire is very flexible and cheap
+but a lot harder to wire. To connect all components under the board you need to use single core wire. Connecting the chess
+board to the breadboards can be done using stranded wire. In my project I have connected these wires to a breadboard.
+Because of this I have manually soldered pins on the end of every wire. I do not recommend doing this. While it is
+slightly cheaper to solder every pin to a stranded wire this takes a lot of time time and the connections are a common
+cause of failure. In hindsight I recommend stripping male to male jumper cables. This is slightly
+more expensive but at least the cables will stay put and they will have strong pins. The large amount of soldering
+and connections and the noise on the I2C bus are the main problems with the current hardware design. However there is
+one possible improve to mitigate these problems.</p>
+<p>The LEDs are wired to the LED matrix driver using a clever trick. The LEDs are wired as a matrix.
+This means that the plus pins of the LEDs in one file are all connected to the same wire and that the minus pins of all
+LEDs in one rank are wired together. When all LEDs are off then the matrix driver will keep all connections open. This means
+that there is no power on any plus pin and no minus pin is connected to the ground. The matrix driver can turn on an LED
+by closing the switches corresponding to the rank and file. No other LEDs will turn because no other LED will have both a
+connected plus and minus pin. The matrix driver can turn on multiple LEDs on one file by opening multiple ranks. We cannot
+also turn on LEDs at other files since unintended LEDs will light up. The matrix driver solves this by turning on the
+files one by one and just blinking all LEDs faster then the human eye can see. This is called scanning.</p>
+<p>Wiring the LEDs in a matrix form is great because it requires a lot less connections and it only uses one bus device. The
+matrix driver can connect 124 wires using only 24 connections. Since the large amount of connections and the large load on the
+I2C bus where the major problems with the hardware design wiring components in a matrix can significantly improve our design.
+In the original design the reed switches were all just wired one pin of the MCP23017 per reed switch.
+Because of this we needed a lot of MCPs and a lot of connections. However since the MCP23017 can both give output and read
+input the reed switches could also be wired in a matrix. Every file of reed switches should be wired to one output pin of the
+MCP and every row of reed switches to an input pin. By turning on only one output pin and reading the output pins we can
+get the occupancy of one file. We can now scan the chess board by scanning the board file by file. Since one MCP23017 has
+16 channels this new design would only require one MCP and one matrix driver. It is unlikely that a TCA9548A is needed. This new
+design saves a lot of money and time and next to that it even has less points of failure.</p>
+<p>As a last footnote I want to mention that I used 4 LED to mark a square for aesthetic reasons. While this is most certainly
+possible it does add a large amount of extra work. While the change seems minor this added 17 extra LED and one whole extra
+MCP which needed resistors. Using a 9 by 9 LED matrix is certainly possible but be aware of the large amount of extra
+work that is needed</p>
+</div>
+<div class="section" id="hardware-used">
+<h2>Hardware used<a class="headerlink" href="#hardware-used" title="Permalink to this headline">¶</a></h2>
+<p>In this section picture of the hardware can be found and a list of all used components. Note that the list includes
+components with a link to the official Adafruit site. These products will be cheaper at your local retailer. The Adafruit
+libraries are great and I recommend using them however not all third party tools are compatible with them. The matrix
+backpack, the multiplexer and the LCD backpack need to be bought from Adafruit to use the library. Every other component
+can be brandless.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 86%" />
+<col style="width: 14%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><strong>Component</strong></p></td>
+<td><p><strong>Amount</strong></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference external" href="https://www.adafruit.com/product/3775">Raspberry Pi 3B+</a></p></td>
+<td><p>1</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference external" href="https://www.adafruit.com/product/1427">Adafruit HT33K16 matrix driver</a></p></td>
+<td><p>1</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference external" href="https://www.adafruit.com/product/732">MCP23017</a></p></td>
+<td><p>5</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference external" href="https://www.adafruit.com/product/2717">TCA9548A I2C Multiplexer</a></p></td>
+<td><p>1</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference external" href="https://www.adafruit.com/product/181">LCD screen 16 by 2</a></p></td>
+<td><p>1</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference external" href="https://www.adafruit.com/product/292">LCD i2c backpack</a></p></td>
+<td><p>1</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference external" href="https://www.adafruit.com/product/1009">Tactile buttons</a></p></td>
+<td><p>5</p></td>
+</tr>
+<tr class="row-odd"><td><p>Chess set 40 cm</p></td>
+<td><p>1</p></td>
+</tr>
+<tr class="row-even"><td><p>Reed switch normally open</p></td>
+<td><p>64</p></td>
+</tr>
+<tr class="row-odd"><td><p>LEDs 5v</p></td>
+<td><p>81</p></td>
+</tr>
+<tr class="row-even"><td><p>Neodymium magnet</p></td>
+<td><p>32</p></td>
+</tr>
+<tr class="row-odd"><td><p>Resistor 330 ohm</p></td>
+<td><p>9</p></td>
+</tr>
+<tr class="row-even"><td><p>Pins header male to male</p></td>
+<td><p>80</p></td>
+</tr>
+<tr class="row-odd"><td><p>Wires and breadboard</p></td>
+<td><p>Lots</p></td>
+</tr>
+</tbody>
+</table>
+<a class="reference internal image-reference" href="_images/board_off.jpg"><img alt="_images/board_off.jpg" class="align-center" src="_images/board_off.jpg" style="width: 450px;" /></a>
+<a class="reference internal image-reference" href="_images/board_on.jpg"><img alt="_images/board_on.jpg" class="align-center" src="_images/board_on.jpg" style="width: 450px;" /></a>
+<a class="reference internal image-reference" href="_images/bottom_board.jpg"><img alt="_images/bottom_board.jpg" class="align-center" src="_images/bottom_board.jpg" style="width: 450px;" /></a>
+<a class="reference internal image-reference" href="_images/screen.jpg"><img alt="_images/screen.jpg" class="align-center" src="_images/screen.jpg" style="width: 450px;" /></a>
+</div>
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Hardware description</a><ul>
+<li><a class="reference internal" href="#noisy-bus-problem">Noisy bus problem</a></li>
+<li><a class="reference internal" href="#hardware-improvements">Hardware improvements</a></li>
+<li><a class="reference internal" href="#hardware-used">Hardware used</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="InterfaceImplementation.html"
+                        title="previous chapter">Interface Implementation</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="Software.html"
+                        title="next chapter">Software structure</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/HardwareDescription.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="Software.html" title="Software structure"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="InterfaceImplementation.html" title="Interface Implementation"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Smart Chess Board 1.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Hardware description</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021, Wouter Schols.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.4.
+    </div>
+  </body>
+</html>

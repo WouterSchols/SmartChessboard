@@ -1,0 +1,316 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Clients.ChessDotComClient &#8212; Smart Chess Board 1.0 documentation</title>
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css" />
+    
+    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">Smart Chess Board 1.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Clients.ChessDotComClient</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for Clients.ChessDotComClient</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span>
+<span class="kn">import</span> <span class="nn">chess</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">timedelta</span>
+<span class="kn">from</span> <span class="nn">chess</span> <span class="kn">import</span> <span class="n">engine</span>
+<span class="kn">from</span> <span class="nn">selenium</span> <span class="kn">import</span> <span class="n">webdriver</span>
+<span class="kn">from</span> <span class="nn">selenium.webdriver</span> <span class="kn">import</span> <span class="n">ActionChains</span>
+<span class="kn">from</span> <span class="nn">selenium.common.exceptions</span> <span class="kn">import</span> <span class="n">StaleElementReferenceException</span>
+<span class="kn">from</span> <span class="nn">Clients</span> <span class="kn">import</span> <span class="n">ClientInterface</span>
+
+
+<div class="viewcode-block" id="ChessDotComClient"><a class="viewcode-back" href="../../Clients.html#Clients.ChessDotComClient.ChessDotComClient">[docs]</a><span class="k">class</span> <span class="nc">ChessDotComClient</span><span class="p">(</span><span class="n">ClientInterface</span><span class="o">.</span><span class="n">ClientInterface</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Defines the client to play on `chess.com &lt;chess.com&gt;`_ &quot;&quot;&quot;</span>
+
+    <span class="n">_driver</span><span class="p">:</span> <span class="n">webdriver</span>
+    <span class="n">color</span><span class="p">:</span> <span class="n">chess</span><span class="o">.</span><span class="n">Color</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">headless</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">path_userdata</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Starts the chess.com client.</span>
+
+<span class="sd">        Using the chess.com client requires that chromedriver to be installed. Starting the client will open a new</span>
+<span class="sd">        chromedriver window. No version of chrome should be running if the path_userdata is set. The game starts once</span>
+<span class="sd">        the start method is called</span>
+<span class="sd">        :param headless: Needs to be set to false if the device running the code is headless</span>
+<span class="sd">        :param path_userdata: Optional path to the chrome user date, allows chess.com to remember login</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">options</span> <span class="o">=</span> <span class="n">webdriver</span><span class="o">.</span><span class="n">ChromeOptions</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">path_userdata</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">options</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;user-data-dir=&quot;</span> <span class="o">+</span> <span class="n">path_userdata</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">headless</span><span class="p">:</span>
+            <span class="n">options</span><span class="o">.</span><span class="n">headless</span> <span class="o">=</span> <span class="kc">True</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_driver</span> <span class="o">=</span> <span class="n">webdriver</span><span class="o">.</span><span class="n">Chrome</span><span class="p">(</span><span class="n">options</span><span class="o">=</span><span class="n">options</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_driver</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;https://www.chess.com&quot;</span><span class="p">)</span>
+        <span class="c1"># Check if game is ready and set color</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">start_new_game</span><span class="p">())</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;game started as &quot;</span> <span class="o">+</span> <span class="p">(</span><span class="s2">&quot;black&quot;</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">color</span> <span class="k">else</span> <span class="s2">&quot;white&quot;</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="fm">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;&quot; Terminates engine &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_driver</span><span class="o">.</span><span class="n">quit</span><span class="p">()</span>
+
+<div class="viewcode-block" id="ChessDotComClient.get_move"><a class="viewcode-back" href="../../Clients.html#Clients.ChessDotComClient.ChessDotComClient.get_move">[docs]</a>    <span class="k">def</span> <span class="nf">get_move</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chess</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">PlayResult</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot; Detects client move from chess.com</span>
+
+<span class="sd">        :returns: next move played by the client in the engine output format</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+
+            <span class="k">try</span><span class="p">:</span>
+                <span class="c1"># Find highlighted squares</span>
+                <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_driver</span><span class="o">.</span><span class="n">find_elements_by_xpath</span><span class="p">(</span><span class="s2">&quot;//div[starts-with(@data-test-element,&#39;highlight&#39;)]&quot;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">res</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">2</span><span class="p">:</span>
+                    <span class="c1"># Two highlighted square indicate a move, first hit usually from square second to square</span>
+                    <span class="n">from_square_id</span> <span class="o">=</span> <span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">get_attribute</span><span class="p">(</span><span class="s2">&quot;class&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">2</span><span class="p">:]</span>  <span class="c1"># Last two char of class name is the square</span>
+                    <span class="n">to_square_id</span> <span class="o">=</span> <span class="n">res</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">get_attribute</span><span class="p">(</span><span class="s2">&quot;class&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">2</span><span class="p">:]</span>
+                    <span class="n">from_square</span> <span class="o">=</span> <span class="n">chess</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">from_square_id</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">from_square_id</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+                    <span class="n">to_square</span> <span class="o">=</span> <span class="n">chess</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">to_square_id</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">to_square_id</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+
+                    <span class="c1"># Set from and to square</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_board</span><span class="o">.</span><span class="n">piece_at</span><span class="p">(</span><span class="n">from_square</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span> \
+                            <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_board</span><span class="o">.</span><span class="n">piece_at</span><span class="p">(</span><span class="n">from_square</span><span class="p">)</span><span class="o">.</span><span class="n">color</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">color</span><span class="p">:</span>
+                        <span class="n">temp</span> <span class="o">=</span> <span class="n">from_square</span>
+                        <span class="n">from_square</span> <span class="o">=</span> <span class="n">to_square</span>
+                        <span class="n">to_square</span> <span class="o">=</span> <span class="n">temp</span>
+
+                    <span class="c1"># If new move is promotion</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_board</span><span class="o">.</span><span class="n">piece_at</span><span class="p">(</span><span class="n">from_square</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> \
+                            <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_board</span><span class="o">.</span><span class="n">piece_at</span><span class="p">(</span><span class="n">from_square</span><span class="p">)</span><span class="o">.</span><span class="n">piece_type</span> <span class="ow">is</span> <span class="n">chess</span><span class="o">.</span><span class="n">PAWN</span> \
+                            <span class="ow">and</span> <span class="n">chess</span><span class="o">.</span><span class="n">square_rank</span><span class="p">(</span><span class="n">to_square</span><span class="p">)</span> <span class="o">==</span> <span class="p">(</span><span class="mi">7</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">color</span> <span class="ow">is</span> <span class="n">chess</span><span class="o">.</span><span class="n">WHITE</span> <span class="k">else</span> <span class="mi">0</span><span class="p">):</span>
+                        <span class="c1"># Check promotion square (it has a unique name)</span>
+                        <span class="n">promotion_square_id</span> <span class="o">=</span> <span class="s2">&quot;piece.square-</span><span class="si">{piece_file}{piece_rank}</span><span class="s2">.</span><span class="si">{piece_color}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                            <span class="n">piece_file</span><span class="o">=</span><span class="n">chess</span><span class="o">.</span><span class="n">square_file</span><span class="p">(</span><span class="n">to_square</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span>
+                            <span class="n">piece_rank</span><span class="o">=</span><span class="n">chess</span><span class="o">.</span><span class="n">square_rank</span><span class="p">(</span><span class="n">to_square</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span>
+                            <span class="n">piece_color</span><span class="o">=</span><span class="s1">&#39;w&#39;</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">color</span> <span class="ow">is</span> <span class="n">chess</span><span class="o">.</span><span class="n">WHITE</span> <span class="k">else</span> <span class="s1">&#39;b&#39;</span>
+                        <span class="p">)</span>
+                        <span class="n">piece</span><span class="p">:</span> <span class="n">chess</span><span class="o">.</span><span class="n">Piece</span>
+                        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_driver</span><span class="o">.</span><span class="n">find_elements_by_id</span><span class="p">(</span><span class="n">promotion_square_id</span> <span class="o">+</span> <span class="s1">&#39;q&#39;</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="p">[]:</span>
+                            <span class="n">piece</span> <span class="o">=</span> <span class="n">chess</span><span class="o">.</span><span class="n">QUEEN</span>  <span class="c1"># if promotion piece square contains queen</span>
+                        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_driver</span><span class="o">.</span><span class="n">find_elements_by_id</span><span class="p">(</span><span class="n">promotion_square_id</span> <span class="o">+</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="p">[]:</span>
+                            <span class="n">piece</span> <span class="o">=</span> <span class="n">chess</span><span class="o">.</span><span class="n">ROOK</span>
+                        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_driver</span><span class="o">.</span><span class="n">find_elements_by_id</span><span class="p">(</span><span class="n">promotion_square_id</span> <span class="o">+</span> <span class="s1">&#39;n&#39;</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="p">[]:</span>
+                            <span class="n">piece</span> <span class="o">=</span> <span class="n">chess</span><span class="o">.</span><span class="n">KNIGHT</span>
+                        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_driver</span><span class="o">.</span><span class="n">find_elements_by_id</span><span class="p">(</span><span class="n">promotion_square_id</span> <span class="o">+</span> <span class="s1">&#39;b&#39;</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="p">[]:</span>
+                            <span class="n">piece</span> <span class="o">=</span> <span class="n">chess</span><span class="o">.</span><span class="n">BISHOP</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Promotion piece detection failed&quot;</span><span class="p">)</span>
+
+                        <span class="c1"># set move with promotion field</span>
+                        <span class="n">move</span> <span class="o">=</span> <span class="n">chess</span><span class="o">.</span><span class="n">Move</span><span class="p">(</span><span class="n">from_square</span><span class="p">,</span> <span class="n">to_square</span><span class="p">,</span> <span class="n">promotion</span><span class="o">=</span><span class="n">piece</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="c1"># If no promotion just set new move</span>
+                        <span class="n">move</span> <span class="o">=</span> <span class="n">chess</span><span class="o">.</span><span class="n">Move</span><span class="p">(</span><span class="n">from_square</span><span class="p">,</span> <span class="n">to_square</span><span class="p">)</span>
+
+                    <span class="k">if</span> <span class="n">move</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_board</span><span class="o">.</span><span class="n">legal_moves</span><span class="p">:</span>
+                        <span class="c1"># if the move is legal</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_board</span><span class="o">.</span><span class="n">push</span><span class="p">(</span><span class="n">move</span><span class="p">)</span>
+                        <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_driver</span><span class="o">.</span><span class="n">find_elements_by_class_name</span><span class="p">(</span>
+                            <span class="s2">&quot;form-button-component.form-button-small.form-button-primary.draw-offer-accept&quot;</span><span class="p">)</span>
+                        <span class="n">draw_offer</span> <span class="o">=</span> <span class="n">res</span> <span class="o">!=</span> <span class="p">[]</span>
+                        <span class="k">return</span> <span class="n">chess</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">PlayResult</span><span class="p">(</span><span class="n">move</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">draw_offered</span><span class="o">=</span><span class="n">draw_offer</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>  <span class="c1"># Old move found</span>
+                        <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.5</span><span class="p">)</span>
+            <span class="k">except</span> <span class="n">StaleElementReferenceException</span><span class="p">:</span>  <span class="c1"># Occurs if new move is played during processing</span>
+                <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="ChessDotComClient.set_move"><a class="viewcode-back" href="../../Clients.html#Clients.ChessDotComClient.ChessDotComClient.set_move">[docs]</a>    <span class="k">def</span> <span class="nf">set_move</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">move</span><span class="p">:</span> <span class="n">engine</span><span class="o">.</span><span class="n">PlayResult</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Plays new move on chess.com</span>
+
+<span class="sd">        :param move: reports move of opponent to client using normal engine output format</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">move</span><span class="o">.</span><span class="n">move</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">move</span><span class="o">.</span><span class="n">resigned</span><span class="p">:</span>
+                <span class="n">resign_button</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_driver</span><span class="o">.</span><span class="n">find_elements_by_class_name</span><span class="p">(</span><span class="s2">&quot;secondary-controls-icon&quot;</span><span class="p">)</span>
+                <span class="c1"># If a bot is being played</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">resign_button</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">resign_button</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># Resign confirmation should be turned off</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_driver</span><span class="o">.</span><span class="n">find_element_by_class_name</span><span class="p">(</span><span class="s2">&quot;resign-button-component.live-game-buttons-button&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
+                <span class="k">return</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Internal error empty move given as input&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">move</span><span class="o">.</span><span class="n">draw_offered</span><span class="p">:</span>
+            <span class="n">draw</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_driver</span><span class="o">.</span><span class="n">find_element_by_class_name</span><span class="p">(</span><span class="s2">&quot;draw-button-component.live-game-buttons-button&quot;</span><span class="p">)</span>
+            <span class="n">draw</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
+
+        <span class="n">piece</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_board</span><span class="o">.</span><span class="n">piece_at</span><span class="p">(</span><span class="n">move</span><span class="o">.</span><span class="n">move</span><span class="o">.</span><span class="n">from_square</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_board</span><span class="o">.</span><span class="n">push</span><span class="p">(</span><span class="n">move</span><span class="o">.</span><span class="n">move</span><span class="p">)</span>
+        <span class="n">piece_char</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">chess</span><span class="o">.</span><span class="n">piece_symbol</span><span class="p">(</span><span class="n">piece</span><span class="o">.</span><span class="n">piece_type</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+        <span class="n">piece_color</span> <span class="o">=</span> <span class="s1">&#39;w&#39;</span> <span class="k">if</span> <span class="n">piece</span><span class="o">.</span><span class="n">color</span> <span class="o">==</span> <span class="n">chess</span><span class="o">.</span><span class="n">WHITE</span> <span class="k">else</span> <span class="s1">&#39;b&#39;</span>
+        <span class="n">piece_elem_name</span> <span class="o">=</span> <span class="s2">&quot;piece.</span><span class="si">{piece_color}{piece_char}</span><span class="s2">.square-</span><span class="si">{piece_file}{piece_rank}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+            <span class="n">piece_color</span><span class="o">=</span><span class="n">piece_color</span><span class="p">,</span>
+            <span class="n">piece_char</span><span class="o">=</span><span class="n">piece_char</span><span class="p">,</span>
+            <span class="n">piece_file</span><span class="o">=</span><span class="n">chess</span><span class="o">.</span><span class="n">square_file</span><span class="p">(</span><span class="n">move</span><span class="o">.</span><span class="n">move</span><span class="o">.</span><span class="n">from_square</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span>
+            <span class="n">piece_rank</span><span class="o">=</span><span class="n">chess</span><span class="o">.</span><span class="n">square_rank</span><span class="p">(</span><span class="n">move</span><span class="o">.</span><span class="n">move</span><span class="o">.</span><span class="n">from_square</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+
+        <span class="c1"># Find square with the piece to move</span>
+        <span class="n">piece_elem</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_driver</span><span class="o">.</span><span class="n">find_element_by_class_name</span><span class="p">(</span><span class="n">piece_elem_name</span><span class="p">)</span>
+        <span class="n">square_height</span> <span class="o">=</span> <span class="n">piece_elem</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="s1">&#39;height&#39;</span><span class="p">]</span>
+
+        <span class="c1"># Calculate relative position of to square from whites perspective</span>
+        <span class="n">transpose_file</span> <span class="o">=</span> <span class="n">chess</span><span class="o">.</span><span class="n">square_file</span><span class="p">(</span><span class="n">move</span><span class="o">.</span><span class="n">move</span><span class="o">.</span><span class="n">to_square</span><span class="p">)</span> <span class="o">-</span> <span class="n">chess</span><span class="o">.</span><span class="n">square_file</span><span class="p">(</span><span class="n">move</span><span class="o">.</span><span class="n">move</span><span class="o">.</span><span class="n">from_square</span><span class="p">)</span>
+        <span class="n">transpose_rank</span> <span class="o">=</span> <span class="n">chess</span><span class="o">.</span><span class="n">square_rank</span><span class="p">(</span><span class="n">move</span><span class="o">.</span><span class="n">move</span><span class="o">.</span><span class="n">to_square</span><span class="p">)</span> <span class="o">-</span> <span class="n">chess</span><span class="o">.</span><span class="n">square_rank</span><span class="p">(</span><span class="n">move</span><span class="o">.</span><span class="n">move</span><span class="o">.</span><span class="n">from_square</span><span class="p">)</span>
+
+        <span class="c1"># Flip transpose if player if black</span>
+        <span class="n">transpose_file</span> <span class="o">=</span> <span class="n">transpose_file</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">color</span> <span class="ow">is</span> <span class="n">chess</span><span class="o">.</span><span class="n">WHITE</span> <span class="k">else</span> <span class="o">-</span><span class="n">transpose_file</span>
+        <span class="n">transpose_rank</span> <span class="o">=</span> <span class="n">transpose_rank</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">color</span> <span class="ow">is</span> <span class="n">chess</span><span class="o">.</span><span class="n">WHITE</span> <span class="k">else</span> <span class="o">-</span> <span class="n">transpose_rank</span>
+
+        <span class="c1"># Drag piece with transposition</span>
+        <span class="n">act</span> <span class="o">=</span> <span class="n">ActionChains</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_driver</span><span class="p">)</span>
+        <span class="n">act</span><span class="o">.</span><span class="n">drag_and_drop_by_offset</span><span class="p">(</span><span class="n">piece_elem</span><span class="p">,</span>
+                                    <span class="o">-</span> <span class="n">transpose_file</span> <span class="o">*</span> <span class="n">square_height</span><span class="p">,</span>
+                                    <span class="n">transpose_rank</span> <span class="o">*</span> <span class="n">square_height</span><span class="p">)</span><span class="o">.</span><span class="n">perform</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">move</span><span class="o">.</span><span class="n">move</span><span class="o">.</span><span class="n">promotion</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.1</span><span class="p">)</span>
+            <span class="n">piece_char</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">chess</span><span class="o">.</span><span class="n">piece_symbol</span><span class="p">(</span><span class="n">move</span><span class="o">.</span><span class="n">move</span><span class="o">.</span><span class="n">promotion</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+            <span class="n">piece_elem_name</span> <span class="o">=</span> <span class="s2">&quot;promotion-piece.</span><span class="si">{piece_color}{piece_char}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="n">piece_color</span><span class="o">=</span><span class="n">piece_color</span><span class="p">,</span>
+                <span class="n">piece_char</span><span class="o">=</span><span class="n">piece_char</span><span class="p">)</span>
+            <span class="n">piece_elem</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_driver</span><span class="o">.</span><span class="n">find_element_by_class_name</span><span class="p">(</span><span class="n">piece_elem_name</span><span class="p">)</span>
+            <span class="n">piece_elem</span><span class="o">.</span><span class="n">click</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="ChessDotComClient.game_is_over"><a class="viewcode-back" href="../../Clients.html#Clients.ChessDotComClient.ChessDotComClient.game_is_over">[docs]</a>    <span class="k">def</span> <span class="nf">game_is_over</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot; Checks if game is over by checking if the position is mate or the game over window is open</span>
+
+<span class="sd">        :return: Returns True iff game is over</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">game_end_name</span> <span class="o">=</span> <span class="s2">&quot;section-container-component-light-mode-modal-content-component.modal-game-over&quot;</span> \
+                        <span class="s2">&quot;-component.modal-game-over-rounded-grey&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_driver</span><span class="o">.</span><span class="n">find_elements_by_class_name</span><span class="p">(</span><span class="n">game_end_name</span><span class="p">)</span> <span class="o">!=</span> <span class="p">[]</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_board</span><span class="o">.</span><span class="n">is_game_over</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="ChessDotComClient.synchronize_clocks"><a class="viewcode-back" href="../../Clients.html#Clients.ChessDotComClient.ChessDotComClient.synchronize_clocks">[docs]</a>    <span class="k">def</span> <span class="nf">synchronize_clocks</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">clock</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">timedelta</span><span class="p">,</span> <span class="n">timedelta</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> \
+            <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">timedelta</span><span class="p">,</span> <span class="n">timedelta</span><span class="p">]]:</span>
+        <span class="sd">&quot;&quot;&quot; Obtains time from chess.com if the clock is running else returns input</span>
+
+<span class="sd">        :param clock: Input clock from the other client</span>
+<span class="sd">        :return: return clock from current client</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">client</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_driver</span><span class="o">.</span><span class="n">find_elements_by_xpath</span><span class="p">(</span><span class="s2">&quot;//*[@id=&#39;board-layout-player-top&#39;]//div//div[3]/span&quot;</span><span class="p">)</span>
+        <span class="n">opponent</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_driver</span><span class="o">.</span><span class="n">find_elements_by_xpath</span><span class="p">(</span><span class="s2">&quot;//*[@id=&#39;board-layout-player-bottom&#39;]//div//div[3]/span&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">client</span> <span class="ow">is</span> <span class="ow">not</span> <span class="p">[]</span> <span class="ow">and</span> <span class="n">opponent</span> <span class="ow">is</span> <span class="ow">not</span> <span class="p">[]:</span>
+            <span class="n">client_time_str</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">client</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">text</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;:&quot;</span><span class="p">)</span>
+            <span class="n">client_time</span> <span class="o">=</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">minutes</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">client_time_str</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>
+                                    <span class="n">seconds</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">client_time_str</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;:&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)))</span>
+            <span class="n">opponent_time_str</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">client</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">text</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;:&quot;</span><span class="p">)</span>
+            <span class="n">opponent_time</span> <span class="o">=</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">minutes</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">opponent_time_str</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>
+                                      <span class="n">seconds</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">opponent_time_str</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;:&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)))</span>
+            <span class="k">return</span> <span class="p">(</span><span class="n">client_time</span><span class="p">,</span> <span class="n">opponent_time</span><span class="p">)</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">color</span> <span class="k">else</span> <span class="p">(</span><span class="n">opponent_time</span><span class="p">,</span> <span class="n">client_time</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">clock</span></div>
+
+<div class="viewcode-block" id="ChessDotComClient.start_new_game"><a class="viewcode-back" href="../../Clients.html#Clients.ChessDotComClient.ChessDotComClient.start_new_game">[docs]</a>    <span class="k">def</span> <span class="nf">start_new_game</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chess</span><span class="o">.</span><span class="n">Color</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot; Resets the client to start a new game, unique method for chessdotcom client</span>
+
+<span class="sd">        This method can be used to start a new game using the same client. This prevents us from having to reload the</span>
+<span class="sd">        chromedriver</span>
+
+<span class="sd">        :return: Returns new color of client</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_driver</span><span class="o">.</span><span class="n">find_elements_by_class_name</span><span class="p">(</span><span class="s2">&quot;resign-button-component.live-game-buttons-button&quot;</span><span class="p">)</span> <span class="o">!=</span> <span class="p">[]</span> <span class="ow">or</span> \
+                    <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_driver</span><span class="o">.</span><span class="n">find_elements_by_class_name</span><span class="p">(</span><span class="s2">&quot;secondary-controls-icon&quot;</span><span class="p">))</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
+                <span class="k">break</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.5</span><span class="p">)</span>
+        <span class="c1"># Find color of client</span>
+        <span class="n">y_coord_w_rook</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_driver</span><span class="o">.</span><span class="n">find_element_by_class_name</span><span class="p">(</span><span class="s2">&quot;piece.wr.square-11&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">location</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">]</span>
+        <span class="n">y_coord_b_rook</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_driver</span><span class="o">.</span><span class="n">find_element_by_class_name</span><span class="p">(</span><span class="s2">&quot;piece.br.square-18&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">location</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">]</span>
+        <span class="n">color</span> <span class="o">=</span> <span class="n">chess</span><span class="o">.</span><span class="n">WHITE</span> <span class="k">if</span> <span class="n">y_coord_b_rook</span> <span class="o">&gt;</span> <span class="n">y_coord_w_rook</span> <span class="k">else</span> <span class="n">chess</span><span class="o">.</span><span class="n">BLACK</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_board</span> <span class="o">=</span> <span class="n">chess</span><span class="o">.</span><span class="n">Board</span><span class="p">()</span>
+
+        <span class="c1"># configure metadata</span>
+        <span class="n">names</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_driver</span><span class="o">.</span><span class="n">find_elements_by_class_name</span><span class="p">(</span>
+            <span class="s2">&quot;user-username-component.user-username-dark.user-username-link.user-tagline-username&quot;</span><span class="p">)</span>
+        <span class="n">rating</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_driver</span><span class="o">.</span><span class="n">find_elements_by_class_name</span><span class="p">(</span><span class="s2">&quot;user-tagline-rating&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">names</span><span class="p">:</span>
+            <span class="n">names</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_driver</span><span class="o">.</span><span class="n">find_elements_by_class_name</span><span class="p">(</span>
+                <span class="s2">&quot;user-username-component.user-username-lightgray.user-tagline-username&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">names</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">if</span> <span class="mi">0</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">rating</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="p">[(</span><span class="s2">&quot;white&quot;</span> <span class="k">if</span> <span class="n">color</span> <span class="k">else</span> <span class="s2">&quot;black&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;_name&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">names</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">text</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="p">[(</span><span class="s2">&quot;white&quot;</span> <span class="k">if</span> <span class="n">color</span> <span class="k">else</span> <span class="s2">&quot;black&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;_name&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">names</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">text</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span> <span class="o">+</span> <span class="n">rating</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">text</span>
+            <span class="k">if</span> <span class="mi">1</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">rating</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="p">[(</span><span class="s2">&quot;white&quot;</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">color</span> <span class="k">else</span> <span class="s2">&quot;black&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;_name&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">names</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">text</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="p">[(</span><span class="s2">&quot;white&quot;</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">color</span> <span class="k">else</span> <span class="s2">&quot;black&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;_name&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">names</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">text</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span> <span class="o">+</span> <span class="n">rating</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">text</span>
+        <span class="k">return</span> <span class="n">color</span></div></div>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">Smart Chess Board 1.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Clients.ChessDotComClient</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021, Wouter Schols.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.4.
+    </div>
+  </body>
+</html>
