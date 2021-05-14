@@ -1,0 +1,415 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Clients.HardwareClient &#8212; Smart Chess Board 1.0 documentation</title>
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css" />
+    
+    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">Smart Chess Board 1.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Clients.HardwareClient</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for Clients.HardwareClient</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">threading</span>
+<span class="kn">from</span> <span class="nn">threading</span> <span class="kn">import</span> <span class="n">Lock</span>
+<span class="kn">from</span> <span class="nn">Clients</span> <span class="kn">import</span> <span class="n">ClientInterface</span>
+<span class="kn">import</span> <span class="nn">chess</span>
+<span class="kn">from</span> <span class="nn">chess</span> <span class="kn">import</span> <span class="n">engine</span>
+<span class="kn">from</span> <span class="nn">Hardware</span> <span class="kn">import</span> <span class="n">HardwareImplementation</span><span class="p">,</span> <span class="n">HardwareInterface</span>
+<span class="kn">from</span> <span class="nn">time</span> <span class="kn">import</span> <span class="n">sleep</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">timedelta</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span>
+<span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
+
+<span class="n">SLEEP_TIME</span> <span class="o">=</span> <span class="mf">0.5</span>  <span class="c1"># Time to sleep after every scan in seconds</span>
+
+
+<div class="viewcode-block" id="HardwareClient"><a class="viewcode-back" href="../../Clients.html#Clients.HardwareClient.HardwareClient">[docs]</a><span class="k">class</span> <span class="nc">HardwareClient</span><span class="p">(</span><span class="n">ClientInterface</span><span class="o">.</span><span class="n">ClientInterface</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Interface to Hardware chessboard &quot;&quot;&quot;</span>
+
+    <span class="c1"># Board state</span>
+    <span class="n">_board_lock</span><span class="p">:</span> <span class="n">Lock</span>  <span class="c1"># Required to access _board</span>
+
+    <span class="c1"># Input output variables</span>
+    <span class="n">_input_playResult</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">chess</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">PlayResult</span><span class="p">]</span>
+    <span class="n">_output_playResult</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">chess</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">PlayResult</span><span class="p">]</span>
+    <span class="n">_playResult_lock</span><span class="p">:</span> <span class="n">Lock</span>  <span class="c1"># Required to access input or output</span>
+
+    <span class="c1"># Time display</span>
+    <span class="n">_white_time</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">timedelta</span><span class="p">]</span>
+    <span class="n">_black_time</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">timedelta</span><span class="p">]</span>
+    <span class="n">_last_move_made</span><span class="p">:</span> <span class="n">datetime</span>
+    <span class="n">_time_lock</span><span class="p">:</span> <span class="n">Lock</span>  <span class="c1"># Required to display the time</span>
+
+    <span class="c1"># HardwareInterface thread variables</span>
+    <span class="n">_hw_thread</span><span class="p">:</span> <span class="n">threading</span><span class="o">.</span><span class="n">Thread</span>
+    <span class="n">_hwi</span><span class="p">:</span> <span class="n">HardwareInterface</span><span class="o">.</span><span class="n">HardwareInterface</span>
+    <span class="n">_stop_flag</span><span class="p">:</span> <span class="nb">bool</span>
+    <span class="n">_flag_lock</span><span class="p">:</span> <span class="n">Lock</span>  <span class="c1"># Required to change flag</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">color</span><span class="p">:</span> <span class="n">chess</span><span class="o">.</span><span class="n">Color</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Creates client and starts thread to control hardware chessboard</span>
+
+<span class="sd">        :param color: Weather the client is black or white</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">color</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_board_lock</span> <span class="o">=</span> <span class="n">Lock</span><span class="p">()</span>  <span class="c1"># Required to access _board</span>
+
+        <span class="c1"># Input output variables</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_input_playResult</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_output_playResult</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_playResult_lock</span> <span class="o">=</span> <span class="n">Lock</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_white_time</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_black_time</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_last_move_made</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_time_lock</span> <span class="o">=</span> <span class="n">Lock</span><span class="p">()</span>
+
+        <span class="c1"># Client to the HardwareInterface</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_hw_thread</span> <span class="o">=</span> <span class="n">threading</span><span class="o">.</span><span class="n">Thread</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_hw_control</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Hardware thread&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_hwi</span><span class="p">:</span> <span class="n">HardwareInterface</span> <span class="o">=</span> <span class="n">HardwareImplementation</span><span class="o">.</span><span class="n">HardwareImplementation</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_stop_flag</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_flag_lock</span> <span class="o">=</span> <span class="n">Lock</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_hw_thread</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="fm">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;&quot; Terminates hardware thread before deleting shared resources &quot;&quot;&quot;</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_flag_lock</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_stop_flag</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_hw_thread</span><span class="o">.</span><span class="n">join</span><span class="p">()</span>
+
+<div class="viewcode-block" id="HardwareClient.get_move"><a class="viewcode-back" href="../../Clients.html#Clients.HardwareClient.HardwareClient.get_move">[docs]</a>    <span class="k">def</span> <span class="nf">get_move</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chess</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">PlayResult</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot; Returns next move from client</span>
+
+<span class="sd">        :returns: next move played by the client in the normal engine output format</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_playResult_lock</span><span class="p">:</span>
+                <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_output_playResult</span>
+            <span class="k">if</span> <span class="n">res</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_output_playResult</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="k">return</span> <span class="n">res</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">sleep</span><span class="p">(</span><span class="n">SLEEP_TIME</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="HardwareClient.set_move"><a class="viewcode-back" href="../../Clients.html#Clients.HardwareClient.HardwareClient.set_move">[docs]</a>    <span class="k">def</span> <span class="nf">set_move</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">move</span><span class="p">:</span> <span class="n">chess</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">PlayResult</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Report new move to client</span>
+
+<span class="sd">        :param move: reports move of opponent to client using normal engine output format</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_time_lock</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_last_move_made</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_playResult_lock</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_input_playResult</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">move</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="HardwareClient.game_is_over"><a class="viewcode-back" href="../../Clients.html#Clients.HardwareClient.HardwareClient.game_is_over">[docs]</a>    <span class="k">def</span> <span class="nf">game_is_over</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot; Checks if the game has ended</span>
+
+<span class="sd">        Conditions checked:</span>
+<span class="sd">        1.  Checkmate</span>
+<span class="sd">        2.  Opponent resignation</span>
+<span class="sd">        3.  Stop flag raised</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_board_lock</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_board</span><span class="o">.</span><span class="n">is_checkmate</span><span class="p">():</span>
+                <span class="n">result</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_playResult_lock</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_input_playResult</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_input_playResult</span><span class="o">.</span><span class="n">resigned</span><span class="p">:</span>
+                    <span class="n">result</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_flag_lock</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_stop_flag</span><span class="p">:</span>
+                <span class="n">result</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">return</span> <span class="n">result</span></div>
+
+<div class="viewcode-block" id="HardwareClient.synchronize_clocks"><a class="viewcode-back" href="../../Clients.html#Clients.HardwareClient.HardwareClient.synchronize_clocks">[docs]</a>    <span class="k">def</span> <span class="nf">synchronize_clocks</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">clock</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">timedelta</span><span class="p">,</span> <span class="n">timedelta</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> \
+            <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">timedelta</span><span class="p">,</span> <span class="n">timedelta</span><span class="p">]]:</span>
+        <span class="sd">&quot;&quot;&quot; Synchronize clocks between two clients</span>
+
+<span class="sd">        :param clock: Input clock from the other client (white time, black time)</span>
+<span class="sd">        :return: return clock from current client (white time, black time) if available</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_time_lock</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">clock</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_white_time</span> <span class="o">=</span> <span class="n">clock</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_black_time</span> <span class="o">=</span> <span class="n">clock</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_white_time</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_black_time</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">None</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_white_time</span><span class="p">),</span> <span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_black_time</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">_hw_control</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Controls the hardware and maintains the hardware state</span>
+
+<span class="sd">        The main body of the hardware thread. The hardware thread can be in 3 states. The hardware loops</span>
+<span class="sd">        trough these 3 states until the game is over.</span>
+<span class="sd">        1.  Detect move player: In this case it is the clients turn to move. The hw_thread tries to</span>
+<span class="sd">            detect a valid move from the player based on the current occupancy. Next to this the hw_thread</span>
+<span class="sd">            will highlight any unexpected changes</span>
+<span class="sd">        2.  Wait move opponent: In this state the client is waiting until the set_move method is called.</span>
+<span class="sd">            The hw_thread will highlight unexpected changes.</span>
+<span class="sd">        3.  Play move opponent. The client waits until the opponents move has been played on the board. The</span>
+<span class="sd">            client highlights the opponents move and any unexpected changes.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">color</span> <span class="o">==</span> <span class="n">chess</span><span class="o">.</span><span class="n">WHITE</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_hwi</span><span class="o">.</span><span class="n">display</span><span class="p">(</span><span class="s2">&quot;White&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_hwi</span><span class="o">.</span><span class="n">display</span><span class="p">(</span><span class="s2">&quot;Black&quot;</span><span class="p">)</span>
+
+        <span class="k">while</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">game_is_over</span><span class="p">():</span>
+            <span class="n">case</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+            <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_board_lock</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_board</span><span class="o">.</span><span class="n">turn</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">color</span><span class="p">:</span>
+                    <span class="n">case</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">if</span> <span class="n">case</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>  <span class="c1"># If statement prevents code from requesting a second lock</span>
+                <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_playResult_lock</span><span class="p">:</span>
+                    <span class="n">case</span> <span class="o">=</span> <span class="mi">1</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_input_playResult</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="mi">2</span>
+
+            <span class="c1"># Switch case</span>
+            <span class="k">if</span> <span class="n">case</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_hw_detect_move_player</span><span class="p">()</span>
+            <span class="k">elif</span> <span class="n">case</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_hw_wait_move_opponent</span><span class="p">()</span>
+            <span class="k">elif</span> <span class="n">case</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_hw_play_move_opponent</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;internal error&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_hw_detect_move_player</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Detect move from player</span>
+
+<span class="sd">        We compare the expected occupancy with the actual occupancy. If two squares are different then</span>
+<span class="sd">        we set the square where the clients piece used to be as the from square and the other square as the too</span>
+<span class="sd">        square. Using this we create a candidate move (from_square, to_square). If this is a legal move then we</span>
+<span class="sd">        will place this move in the output field. Note that the chess library will detect any other side effects</span>
+<span class="sd">        from the move like captures, promotions and en passant. The internal board will be updated correctly</span>
+<span class="sd">        and the diff will be marked on the board.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">draw_offer</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">while</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">game_is_over</span><span class="p">():</span>
+            <span class="n">occupancy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_hwi</span><span class="o">.</span><span class="n">get_occupancy</span><span class="p">()</span>
+            <span class="n">diff</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_diff_occupancy_board</span><span class="p">(</span><span class="n">occupancy</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_hwi</span><span class="o">.</span><span class="n">mark_squares</span><span class="p">(</span><span class="n">diff</span><span class="p">)</span>
+
+            <span class="n">offers</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_hwi</span><span class="o">.</span><span class="n">game_end_offers</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">offers</span> <span class="ow">is</span> <span class="n">HardwareInterface</span><span class="o">.</span><span class="n">Offer</span><span class="o">.</span><span class="n">RESIGN</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_resigned</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="k">return</span> <span class="n">engine</span><span class="o">.</span><span class="n">PlayResult</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">resigned</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">offers</span> <span class="ow">is</span> <span class="n">HardwareInterface</span><span class="o">.</span><span class="n">Offer</span><span class="o">.</span><span class="n">DRAW</span><span class="p">:</span>
+                <span class="n">draw_offer</span> <span class="o">=</span> <span class="kc">True</span>
+
+            <span class="c1"># Detect all changed squares</span>
+            <span class="n">squares</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">8</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">rank</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">8</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="n">diff</span><span class="p">[</span><span class="n">file</span><span class="p">][</span><span class="n">rank</span><span class="p">]:</span>
+                        <span class="n">squares</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">chess</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="n">rank</span><span class="p">))</span>
+
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">squares</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>  <span class="c1"># Try to convert changed squares to legal move</span>
+                <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_board_lock</span><span class="p">:</span>  <span class="c1"># Promotion not implemented</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_board</span><span class="o">.</span><span class="n">piece_at</span><span class="p">(</span><span class="n">squares</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> \
+                            <span class="bp">self</span><span class="o">.</span><span class="n">_board</span><span class="o">.</span><span class="n">piece_at</span><span class="p">(</span><span class="n">squares</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">color</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">color</span><span class="p">:</span>
+                        <span class="n">move</span> <span class="o">=</span> <span class="n">chess</span><span class="o">.</span><span class="n">Move</span><span class="p">(</span><span class="n">squares</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">squares</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+                    <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_board</span><span class="o">.</span><span class="n">piece_at</span><span class="p">(</span><span class="n">squares</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> \
+                            <span class="bp">self</span><span class="o">.</span><span class="n">_board</span><span class="o">.</span><span class="n">piece_at</span><span class="p">(</span><span class="n">squares</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span><span class="o">.</span><span class="n">color</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">color</span><span class="p">:</span>
+                        <span class="n">move</span> <span class="o">=</span> <span class="n">chess</span><span class="o">.</span><span class="n">Move</span><span class="p">(</span><span class="n">squares</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">squares</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="k">continue</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_board</span><span class="o">.</span><span class="n">piece_at</span><span class="p">(</span><span class="n">move</span><span class="o">.</span><span class="n">from_square</span><span class="p">)</span><span class="o">.</span><span class="n">piece_type</span> <span class="o">==</span> <span class="n">chess</span><span class="o">.</span><span class="n">PAWN</span> <span class="ow">and</span> \
+                            <span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">color</span> <span class="o">==</span> <span class="n">chess</span><span class="o">.</span><span class="n">WHITE</span> <span class="ow">and</span> <span class="n">chess</span><span class="o">.</span><span class="n">square_rank</span><span class="p">(</span><span class="n">move</span><span class="o">.</span><span class="n">to_square</span><span class="p">)</span> <span class="o">==</span> <span class="mi">7</span><span class="p">)</span> <span class="ow">or</span>
+                             <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">color</span> <span class="o">==</span> <span class="n">chess</span><span class="o">.</span><span class="n">BLACK</span> <span class="ow">and</span> <span class="n">chess</span><span class="o">.</span><span class="n">square_rank</span><span class="p">(</span><span class="n">move</span><span class="o">.</span><span class="n">to_square</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)):</span>
+                        <span class="n">move</span><span class="o">.</span><span class="n">promotion</span> <span class="o">=</span> <span class="n">chess</span><span class="o">.</span><span class="n">QUEEN</span>
+                    <span class="n">move_is_legal</span> <span class="o">=</span> <span class="n">move</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_board</span><span class="o">.</span><span class="n">legal_moves</span>  <span class="c1"># save result to not use two locks</span>
+                    <span class="k">if</span> <span class="n">move_is_legal</span> <span class="ow">and</span> <span class="n">move</span><span class="o">.</span><span class="n">promotion</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="n">move</span><span class="o">.</span><span class="n">promotion</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_hwi</span><span class="o">.</span><span class="n">promotion_piece</span><span class="p">()</span>
+
+                <span class="k">if</span> <span class="n">move_is_legal</span><span class="p">:</span>
+                    <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_board_lock</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_board</span><span class="o">.</span><span class="n">push</span><span class="p">(</span><span class="n">move</span><span class="p">)</span>
+                    <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_playResult_lock</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_output_playResult</span> <span class="o">=</span> <span class="n">engine</span><span class="o">.</span><span class="n">PlayResult</span><span class="p">(</span><span class="n">move</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">draw_offered</span><span class="o">=</span><span class="n">draw_offer</span><span class="p">)</span>
+                    <span class="k">return</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_update_display</span><span class="p">()</span>
+            <span class="n">sleep</span><span class="p">(</span><span class="n">SLEEP_TIME</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_hw_wait_move_opponent</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Wait for opponent move only mark changes from expected state &quot;&quot;&quot;</span>
+        <span class="k">while</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">game_is_over</span><span class="p">():</span>
+            <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_playResult_lock</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_input_playResult</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">return</span>
+            <span class="n">occupancy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_hwi</span><span class="o">.</span><span class="n">get_occupancy</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_hwi</span><span class="o">.</span><span class="n">mark_squares</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_diff_occupancy_board</span><span class="p">(</span><span class="n">occupancy</span><span class="p">))</span>  <span class="c1"># mark squares differing from expected states</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_update_display</span><span class="p">()</span>
+            <span class="n">sleep</span><span class="p">(</span><span class="n">SLEEP_TIME</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_hw_play_move_opponent</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Inform hardware of opponents move by marking from and to square + any other changes &quot;&quot;&quot;</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_playResult_lock</span><span class="p">:</span>
+            <span class="c1"># Deepcopy made to ensure thread safety</span>
+            <span class="n">move</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_input_playResult</span><span class="o">.</span><span class="n">move</span><span class="p">)</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_input_playResult</span><span class="o">.</span><span class="n">move</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
+            <span class="n">draw_offered</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_input_playResult</span><span class="o">.</span><span class="n">draw_offered</span>
+
+        <span class="k">if</span> <span class="n">move</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span>
+
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_board_lock</span><span class="p">:</span>
+            <span class="n">is_capture</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_board</span><span class="o">.</span><span class="n">is_capture</span><span class="p">(</span><span class="n">move</span><span class="p">)</span>
+
+        <span class="k">while</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">game_is_over</span><span class="p">():</span>
+            <span class="n">occupancy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_hwi</span><span class="o">.</span><span class="n">get_occupancy</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">is_capture</span><span class="p">:</span>  <span class="c1"># Check if captured piece has been removed</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">_get_occupancy_square_from_matrix</span><span class="p">(</span><span class="n">occupancy</span><span class="p">,</span> <span class="n">move</span><span class="o">.</span><span class="n">to_square</span><span class="p">):</span>
+                    <span class="n">is_capture</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="n">_get_occupancy_square_from_matrix</span><span class="p">(</span><span class="n">occupancy</span><span class="p">,</span> <span class="n">move</span><span class="o">.</span><span class="n">from_square</span><span class="p">))</span> \
+                        <span class="ow">and</span> <span class="n">_get_occupancy_square_from_matrix</span><span class="p">(</span><span class="n">occupancy</span><span class="p">,</span> <span class="n">move</span><span class="o">.</span><span class="n">to_square</span><span class="p">):</span>
+                    <span class="c1"># If move has been completed update board and clear input field</span>
+                    <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_board_lock</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_board</span><span class="o">.</span><span class="n">push</span><span class="p">(</span><span class="n">move</span><span class="p">)</span>
+                    <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_playResult_lock</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_input_playResult</span> <span class="o">=</span> <span class="kc">None</span>
+                    <span class="n">temp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_diff_occupancy_board</span><span class="p">(</span><span class="n">occupancy</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_hwi</span><span class="o">.</span><span class="n">mark_squares</span><span class="p">(</span><span class="n">temp</span><span class="p">)</span>
+                    <span class="k">return</span>
+
+            <span class="c1"># If move has not been made on hw</span>
+            <span class="n">diff</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_diff_occupancy_board</span><span class="p">(</span><span class="n">occupancy</span><span class="p">)</span>  <span class="c1"># find diff</span>
+            <span class="n">diff</span><span class="p">[</span><span class="n">chess</span><span class="o">.</span><span class="n">square_file</span><span class="p">(</span><span class="n">move</span><span class="o">.</span><span class="n">from_square</span><span class="p">)][</span><span class="n">chess</span><span class="o">.</span><span class="n">square_rank</span><span class="p">(</span><span class="n">move</span><span class="o">.</span><span class="n">from_square</span><span class="p">)]</span> <span class="o">=</span> <span class="kc">True</span>  <span class="c1"># And mark new move</span>
+            <span class="n">diff</span><span class="p">[</span><span class="n">chess</span><span class="o">.</span><span class="n">square_file</span><span class="p">(</span><span class="n">move</span><span class="o">.</span><span class="n">to_square</span><span class="p">)][</span><span class="n">chess</span><span class="o">.</span><span class="n">square_rank</span><span class="p">(</span><span class="n">move</span><span class="o">.</span><span class="n">to_square</span><span class="p">)]</span> <span class="o">=</span> <span class="kc">True</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">_hwi</span><span class="o">.</span><span class="n">mark_squares</span><span class="p">(</span><span class="n">diff</span><span class="p">)</span>  <span class="c1"># Send marked squares to hardware</span>
+            <span class="k">if</span> <span class="n">draw_offered</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_hwi</span><span class="o">.</span><span class="n">display</span><span class="p">(</span><span class="s2">&quot;Draw offered&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_update_display</span><span class="p">()</span>
+            <span class="n">sleep</span><span class="p">(</span><span class="n">SLEEP_TIME</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_diff_occupancy_board</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">occupancy</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">bool</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">bool</span><span class="p">]]:</span>
+        <span class="sd">&quot;&quot;&quot; Returns 8x8 matrix where result[i][j] == True indicates that square[i][j] is not in the expected state &quot;&quot;&quot;</span>
+        <span class="n">diff</span> <span class="o">=</span> <span class="p">[[</span><span class="kc">False</span><span class="p">]</span> <span class="o">*</span> <span class="mi">8</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">8</span><span class="p">)]</span>  <span class="c1"># matrix with squares to mark</span>
+        <span class="c1"># Detect if hardware is in board position</span>
+        <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">8</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">rank</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">8</span><span class="p">):</span>
+                <span class="n">square</span> <span class="o">=</span> <span class="n">chess</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="n">rank</span><span class="p">)</span>
+                <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_board_lock</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">occupancy</span><span class="p">[</span><span class="n">file</span><span class="p">][</span><span class="n">rank</span><span class="p">]</span> <span class="o">==</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_board</span><span class="o">.</span><span class="n">piece_at</span><span class="p">(</span><span class="n">square</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">):</span>
+                        <span class="c1"># If no piece at occupied square or piece at empty square mark diff as True</span>
+                        <span class="n">diff</span><span class="p">[</span><span class="n">file</span><span class="p">][</span><span class="n">rank</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">return</span> <span class="n">diff</span>
+
+    <span class="k">def</span> <span class="nf">_update_display</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Writes information to the display</span>
+
+<span class="sd">            In the first four moves the name of the players will be displayed from the metadata after that the clock</span>
+<span class="sd">            will be displayed</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_time_lock</span><span class="p">:</span>
+            <span class="n">time_set</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_white_time</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_black_time</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="n">meta_data_set</span> <span class="o">=</span> <span class="s2">&quot;white_name&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span> <span class="ow">and</span> <span class="s2">&quot;black_name&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_board_lock</span><span class="p">:</span>
+            <span class="n">early_game</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_board</span><span class="o">.</span><span class="n">move_stack</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">4</span>
+            <span class="n">color</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_board</span><span class="o">.</span><span class="n">turn</span>
+        <span class="k">if</span> <span class="n">meta_data_set</span> <span class="ow">and</span> <span class="p">(</span><span class="n">early_game</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">time_set</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_hwi</span><span class="o">.</span><span class="n">display</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="s2">&quot;white_name&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="s2">&quot;black_name&quot;</span><span class="p">])</span>
+        <span class="k">elif</span> <span class="n">time_set</span><span class="p">:</span>
+            <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_time_lock</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">color</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_white_time</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_last_move_made</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_white_time</span> <span class="o">-</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_black_time</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_last_move_made</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_black_time</span> <span class="o">-</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_last_move_made</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+
+                <span class="n">str_white</span> <span class="o">=</span> <span class="s2">&quot;White </span><span class="si">{minutes}</span><span class="s2">:</span><span class="si">{seconds:02d}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                    <span class="n">minutes</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_white_time</span><span class="o">.</span><span class="n">seconds</span> <span class="o">/</span> <span class="mi">60</span><span class="p">),</span>
+                    <span class="n">seconds</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_white_time</span><span class="o">.</span><span class="n">seconds</span> <span class="o">%</span> <span class="mi">60</span><span class="p">)</span>
+                <span class="n">str_black</span> <span class="o">=</span> <span class="s2">&quot;Black </span><span class="si">{minutes}</span><span class="s2">:</span><span class="si">{seconds:02d}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                    <span class="n">minutes</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_black_time</span><span class="o">.</span><span class="n">seconds</span> <span class="o">/</span> <span class="mi">60</span><span class="p">),</span>
+                    <span class="n">seconds</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_black_time</span><span class="o">.</span><span class="n">seconds</span> <span class="o">%</span> <span class="mi">60</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_hwi</span><span class="o">.</span><span class="n">display</span><span class="p">(</span><span class="n">str_white</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="n">str_black</span><span class="p">)</span></div>
+
+
+<span class="k">def</span> <span class="nf">_get_occupancy_square_from_matrix</span><span class="p">(</span><span class="n">occupancy_matrix</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">bool</span><span class="p">]],</span> <span class="n">square</span><span class="p">:</span> <span class="n">chess</span><span class="o">.</span><span class="n">Square</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot; Check if square is occupied in occupancy matrix</span>
+
+<span class="sd">    A chess square (ie b3) has a file (b = file 1) and a rank (3 = file 2) now if square b3 is occupied</span>
+<span class="sd">    then in the occupancy matrix occupancy_matrix[1][2] = TRUE. In this case this method will return TRUE</span>
+<span class="sd">    otherwise the method will return false</span>
+<span class="sd">    :param occupancy_matrix: 8x8 matrix of booleans implemented as a 2d list.</span>
+<span class="sd">    :param square: The square to be checked</span>
+<span class="sd">    :return: TRUE iff square is occupied</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">occupancy_matrix</span><span class="p">[</span><span class="n">chess</span><span class="o">.</span><span class="n">square_file</span><span class="p">(</span><span class="n">square</span><span class="p">)][</span><span class="n">chess</span><span class="o">.</span><span class="n">square_rank</span><span class="p">(</span><span class="n">square</span><span class="p">)]</span>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">Smart Chess Board 1.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Clients.HardwareClient</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021, Wouter Schols.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.4.
+    </div>
+  </body>
+</html>

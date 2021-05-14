@@ -7,7 +7,7 @@ putting a magnet in every piece and a reed switch below every square. When a squ
 close. This will close a circuit which we can use to detect the piece. We can track how pieces move over the board by
 detecting when squares become empty and when they become occupied. There is one problem, we cannot just connect 64 reed
 switches (and 64 LEDs) to a controller. This is where the I2C bus comes in.
-The I2C bus allows us to theoretically connect an infinite amount of devices using only 4 cables:
+The I2C bus allows us to theoretically connect an infinite amount of devices using only 4 cables::
 
 1. Power
 2. Ground

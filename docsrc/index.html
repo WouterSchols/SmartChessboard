@@ -1,0 +1,210 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Goal of the project &#8212; Smart Chess Board 1.0 documentation</title>
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css" />
+    
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Interface Implementation" href="InterfaceImplementation.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="InterfaceImplementation.html" title="Interface Implementation"
+             accesskey="N">next</a> |</li>
+        <li class="nav-item nav-item-0"><a href="#">Smart Chess Board 1.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Goal of the project</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="goal-of-the-project">
+<h1>Goal of the project<a class="headerlink" href="#goal-of-the-project" title="Permalink to this headline">¶</a></h1>
+<div class="toctree-wrapper compound">
+</div>
+<p>Smart chessboards are popular DIY projects for hardware and software enthusiasts. One great advantage of a DIY
+chess board project is that lot of resources are available to assist people with the hardware design. This makes the
+project accessible to people of any skill level. Unfortunately, there are few resources to assist people in the software
+design. Most projects only treat the software as an after thought and very few features are implemented. This project
+aims to change that. This software project contains a concise and well documented software framework for a DIY chessboard.
+The framework contains out of the box functionality which allows players to connect the board to
+<a class="reference external" href="chess.com">chess.com</a> or to play against an engine. The software works with any hardware setup and is accessible to
+people of any skill level. No software development or Python experience is needed. Next to this the project is easily
+extendable so new ideas can easily be implemented. This documentation will guide you trough all steps needed to connect
+your chessboard. Next to this the inner structure of software is also well documented. The documentation of the inner
+software is only needed if you are planning to implement new features. If you implement any features worth sharing
+please share them with the community.</p>
+<div class="section" id="project-requirements">
+<h2>Project requirements<a class="headerlink" href="#project-requirements" title="Permalink to this headline">¶</a></h2>
+<p>The project has been designed to be usable for any hardware setup. The only requirement is that the controller (the
+device running the code) supports python. The software can be pulled from github:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">clone</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">WouterSchols</span><span class="o">/</span><span class="n">SmartChessboard</span><span class="o">.</span><span class="n">git</span>
+</pre></div>
+</div>
+<p>All Python dependencies for the project can then be installed by calling pip from the root directory.:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cd</span> <span class="n">SmartChessboard</span>
+<span class="n">pip</span> <span class="n">install</span> <span class="o">.</span>
+</pre></div>
+</div>
+<p>The hardware of the project will need to be linked with this software project.  This can be done by implementing
+the <a class="reference internal" href="Hardware.html#module-Hardware.HardwareInterface" title="Hardware.HardwareInterface"><code class="xref py py-class docutils literal notranslate"><span class="pre">HardwareInterface</span></code></a>. Detailed instructions and the interface specification
+can be found here <a class="reference internal" href="InterfaceImplementation.html"><span class="doc">here</span></a>.</p>
+<p>There are various ways to play on the hardware. We call these options to play against the hardware clients. Some clients
+require some small extra dependencies. In order to play on <a class="reference external" href="chess.com">chess.com</a> one will also need to download the
+<a class="reference external" href="https://chromedriver.chromium.org/">chrome driver</a>. The chrome driver is a version of the chrome browser which can be
+controlled using software. I have created the project on a Raspberry pi 3B+, chrome driver for
+the raspberry pi can be downloaded using the command:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sudo</span> <span class="n">apt</span><span class="o">-</span><span class="n">get</span> <span class="n">install</span> <span class="n">chromium</span><span class="o">-</span><span class="n">chromedriver</span>
+</pre></div>
+</div>
+<p>A second client is the engine client. This client allows you to play against an engine. This client works with any installed
+engine. The most commonly used engine is <cite>stockfish &lt;https://stockfishchess.org/download/&gt;</cite>. On the Raspberry Pi the
+software can be installed using the following commands:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">clone</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">official</span><span class="o">-</span><span class="n">stockfish</span><span class="o">/</span><span class="n">Stockfish</span>
+<span class="n">cd</span> <span class="n">Stockfish</span><span class="o">/</span><span class="n">src</span>
+<span class="n">sudo</span> <span class="n">make</span> <span class="o">-</span><span class="n">j4</span> <span class="n">profile</span><span class="o">-</span><span class="n">build</span> <span class="n">ARCH</span><span class="o">=</span><span class="n">armv7</span>
+</pre></div>
+</div>
+<p>This will fetch the latest version of stockfish and compile it to be efficient on the hardware.</p>
+</div>
+<div class="section" id="documentation-contents">
+<h2>Documentation contents<a class="headerlink" href="#documentation-contents" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="InterfaceImplementation.html">Linking the hardware with the software</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="InterfaceImplementation.html#hardware-interface">Hardware interface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="InterfaceImplementation.html#advanced-implementation-resources">Advanced implementation resources</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="HardwareDescription.html">Hardware description</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="HardwareDescription.html#noisy-bus-problem">Noisy bus problem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="HardwareDescription.html#hardware-improvements">Hardware improvements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="HardwareDescription.html#hardware-used">Hardware used</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Software.html">Software architecture description</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="Software.html#main-module">Main module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Software.html#gui-module">GUI module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Software.html#clients-module">Clients module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="Software.html#client-interface">Client interface</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Software.html#chess-com-client">Chess.com client</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Software.html#console-client">Console client</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Software.html#engine-client">Engine client</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Software.html#hardware-client">Hardware client</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Software.html#hardware-module">Hardware module</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="SoftwareDocumentation.html">Software documentation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="main.html">main module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="GUI.html">GUI package</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="GUI.html#module-GUI.gui">GUI.gui module</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Hardware.html">Hardware package</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="Hardware.html#module-Hardware.HardwareInterface">Hardware.HardwareInterface</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Hardware.html#module-Hardware.HardwareImplementation">Hardware.HardwareImplementation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Hardware.html#module-Hardware.SafeDecorator">Hardware.SafeDecorator</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Clients.html">Clients package</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="Clients.html#clients-clientinterface">Clients.ClientInterface</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Clients.html#module-Clients.ChessDotComClient">Clients.ChessDotComClient</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Clients.html#module-Clients.ConsoleClient">Clients.ConsoleClient</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Clients.html#module-Clients.EngineClient">Clients.EngineClient</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Clients.html#module-Clients.HardwareClient">Clients.HardwareClient</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="#">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Goal of the project</a><ul>
+<li><a class="reference internal" href="#project-requirements">Project requirements</a></li>
+<li><a class="reference internal" href="#documentation-contents">Documentation contents</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Next topic</h4>
+  <p class="topless"><a href="InterfaceImplementation.html"
+                        title="next chapter">Interface Implementation</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/index.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="InterfaceImplementation.html" title="Interface Implementation"
+             >next</a> |</li>
+        <li class="nav-item nav-item-0"><a href="#">Smart Chess Board 1.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Goal of the project</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021, Wouter Schols.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.4.
+    </div>
+  </body>
+</html>

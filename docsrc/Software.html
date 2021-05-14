@@ -1,0 +1,303 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Software structure &#8212; Smart Chess Board 1.0 documentation</title>
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css" />
+    
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Smart Chess Board 1.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Software structure</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="software-structure">
+<h1>Software structure<a class="headerlink" href="#software-structure" title="Permalink to this headline">¶</a></h1>
+<p>In this section we will outline the structure and underlying ideas behind the software. Understanding this section is
+vital to implement new features. The software is divided into 3 modules:</p>
+<ol class="arabic simple">
+<li><p>GUI</p></li>
+<li><p>Software</p></li>
+<li><p>Hardware</p></li>
+</ol>
+<p>Each module will be explained in detail on this page. The class diagram below shows how all modules and files relate to
+each other:</p>
+<img alt="_images/class_diagram.png" class="align-center" src="_images/class_diagram.png" />
+<p>This page will go into all modules in detail.</p>
+<div class="section" id="main-module">
+<h2>Main module<a class="headerlink" href="#main-module" title="Permalink to this headline">¶</a></h2>
+<p>As the name implies the main module starts the program. The documentation of the of the main module can be found
+<a class="reference internal" href="main.html"><span class="doc">here</span></a>. The main module contains only one method which is the <a class="reference internal" href="main.html#main.play" title="main.play"><code class="xref py py-class docutils literal notranslate"><span class="pre">main.play</span></code></a> method. This method accepts
+two clients as input and starts a game between the two clients. One of the clients will be the
+<code class="xref py py-class docutils literal notranslate"><span class="pre">Hardware.HardwareClient</span></code> if the machine running the code supports the <code class="xref py py-class docutils literal notranslate"><span class="pre">Hardware.HardwareClient</span></code>. If the
+hardware is not supported then then the <code class="xref py py-class docutils literal notranslate"><span class="pre">Hardware.ConsoleClient</span></code> will be started. This is mainly useful for
+testing purposes. The second client given to the play method will be selected by the user using the GUI.</p>
+</div>
+<div class="section" id="gui-module">
+<h2>GUI module<a class="headerlink" href="#gui-module" title="Permalink to this headline">¶</a></h2>
+<p>The GUI module is another simple module and the documentation can be found <a class="reference internal" href="GUI.html"><span class="doc">here</span></a>. This module contains a
+very basic graphical user interface which allows the user to select the opponent he wishes to play against. The entrance
+point is the method <a class="reference internal" href="GUI.html#GUI.gui.get_opponent_from_gui" title="GUI.gui.get_opponent_from_gui"><code class="xref py py-class docutils literal notranslate"><span class="pre">GUI.gui.get_opponent_from_gui</span></code></a>. This method starts the GUI and returns the opposing client.
+Every screen can only be used once which is why we have to recreate every screen if the back button is pressed.</p>
+</div>
+<div class="section" id="clients-module">
+<h2>Clients module<a class="headerlink" href="#clients-module" title="Permalink to this headline">¶</a></h2>
+<p>The Client module is the most important module in the project. New features will most likely need to be implemented in
+this module. The class <a class="reference internal" href="main.html#module-Clients.ClientInterface" title="Clients.ClientInterface"><code class="xref py py-class docutils literal notranslate"><span class="pre">Clients.ClientInterface</span></code></a> is a vital class which defines the interface of all clients.
+All other classes implement this interface. There are currently 4 clients:</p>
+<ol class="arabic simple">
+<li><p><a class="reference internal" href="#chess-com-client"><span class="std std-ref">The chess.com client</span></a></p></li>
+<li><p><a class="reference internal" href="#console-client"><span class="std std-ref">The console client</span></a></p></li>
+<li><p><a class="reference internal" href="#engine-client"><span class="std std-ref">The engine client</span></a></p></li>
+<li><p><a class="reference internal" href="#hardware-client"><span class="std std-ref">The hardware client</span></a></p></li>
+</ol>
+<div class="section" id="client-interface">
+<h3>Client interface<a class="headerlink" href="#client-interface" title="Permalink to this headline">¶</a></h3>
+<p>The documentation of this class can be found here <a class="reference internal" href="main.html#module-Clients.ClientInterface" title="Clients.ClientInterface"><code class="xref py py-class docutils literal notranslate"><span class="pre">here</span></code></a>. New programmers might not have
+seen interfaces before and might be puzzled by their use. If you are familiar with interfaces then the
+<a class="reference internal" href="main.html#module-Clients.ClientInterface" title="Clients.ClientInterface"><code class="xref py py-class docutils literal notranslate"><span class="pre">documentation</span></code></a> will be sufficient to understand the interface. This section is aimed
+for newer programmers which have not used interfaces yet.</p>
+<p>In python we create an interface using something called abstract classes. These abstract class are not commonly used
+within Python but they are very popular in other programming languages. Abstract classes are classes
+which cannot be instantiated directly. Usually these abstract class will also contain abstract methods. If we want to
+instantiate an abstract class then we first need to <cite>implement</cite> it. We implement a class by extending the abstract class
+with a class which overwrites (ie. implements) all abstract methods. In Python code this looks like this:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">abc</span> <span class="kn">import</span> <span class="n">ABC</span><span class="p">,</span> <span class="n">abstractmethod</span>
+
+
+<span class="k">class</span> <span class="nc">abstract_class</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">print_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">pass</span>
+
+
+<span class="k">class</span> <span class="nc">implementation_1</span><span class="p">(</span><span class="n">abstract_class</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">print_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;implementation 1&quot;</span><span class="p">)</span>
+
+
+<span class="k">class</span> <span class="nc">implementation_2</span><span class="p">(</span><span class="n">abstract_class</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_name</span> <span class="o">=</span> <span class="n">name</span>
+
+    <span class="k">def</span> <span class="nf">print_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_name</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Here the class <cite>abstract_class</cite> is the interface which has one method <cite>print_name</cite>. We can implement this class by extending
+it and implementing the <cite>print_name</cite> method. In the example this class has been implemented twice. The first
+implementation <cite>implementation_1</cite> simply prints the class name when the <cite>print_name</cite> method is called. The second
+implementation <cite>implementation_2</cite> needs to be instantiated with a <cite>name</cite> parameter. When the <cite>print_name</cite> method is
+called then this name is printed.</p>
+<p>Now that we understand how to use abstract methods we might ask why we use these abstract classes. We can create
+new methods which use the <cite>abstract_class</cite> interface. These methods can call the <cite>print_name</cite> method without knowing
+how the method is implemented. An example of such a method can be found below:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="nb">list</span>
+
+<span class="k">def</span> <span class="nf">print_names</span><span class="p">(</span><span class="n">objects</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">abstract_class</span><span class="p">]):</span>
+    <span class="k">for</span> <span class="nb">object</span> <span class="ow">in</span> <span class="n">objects</span><span class="p">:</span>
+        <span class="nb">object</span><span class="o">.</span><span class="n">print_name</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>This method accepts a list of objects as input. These objects are either instances of <cite>implementation_1</cite> or
+<cite>implementation_2</cite>. Because of the <cite>abstract_class</cite> interface we are sure that both classes implement the <cite>print_name</cite>
+method. We can call this method without knowing how the method is implemented.</p>
+<p>The <a class="reference internal" href="main.html#module-Clients.ClientInterface" title="Clients.ClientInterface"><code class="xref py py-class docutils literal notranslate"><span class="pre">Clients.ClientInterface</span></code></a> interface is used similarly. Because of the interface we can easily
+implement different ways to play against the board using one piece of code. Next to this the interface allows us to
+create new clients without changing the existing code. The <a class="reference internal" href="main.html#module-Clients.ClientInterface" title="Clients.ClientInterface"><code class="xref py py-class docutils literal notranslate"><span class="pre">Clients.ClientInterface</span></code></a> has two abstract methods
+which need to be implemented. These methods are <a class="reference internal" href="main.html#Clients.ClientInterface.ClientInterface.get_move" title="Clients.ClientInterface.ClientInterface.get_move"><code class="xref py py-class docutils literal notranslate"><span class="pre">get_move</span></code></a> and
+<a class="reference internal" href="main.html#Clients.ClientInterface.ClientInterface.set_move" title="Clients.ClientInterface.ClientInterface.set_move"><code class="xref py py-class docutils literal notranslate"><span class="pre">set_move</span></code></a>. The use of these classes speaks for itself. Next
+to this the interface also contains normal methods. These methods are optional and do not need to be implemented.
+If you do not implement these methods then the clients will use the base implementation from the abstract class. Next to
+this the abstract class also contains public and private variables:</p>
+<p>1. <cite>_board</cite>: This internal variable is of type <cite>chess.Board</cite> from the
+<a class="reference external" href="https://python-chess.readthedocs.io/en/latest/">chess</a> library. This variable contains the current state of the
+chess board.</p>
+<p>2. <cite>_resigned</cite>: This variable is set to <cite>True</cite> if the client has resigned. This method is used in the base implementation
+of the method <a class="reference internal" href="main.html#Clients.ClientInterface.ClientInterface.game_is_over" title="Clients.ClientInterface.ClientInterface.game_is_over"><code class="xref py py-class docutils literal notranslate"><span class="pre">game_is_over</span></code></a>.</p>
+<p>3. <cite>color</cite>: This public variable indicates the color of the
+client.</p>
+<p>4. <cite>metadata</cite>: This public variable is a dictionary where the keys and values are both strings. This variable can be used
+to share some extra information like the players name. Make sure that no clients make assumptions about the content of this
+variable to ensure that all clients are compatible.</p>
+<p>Lastly, note that if an <cite>__init__</cite> method is implemented then the implementation should also call the original <cite>__init__</cite>
+implementation. This can be done using the python code:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">color</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="chess-com-client">
+<h3>Chess.com client<a class="headerlink" href="#chess-com-client" title="Permalink to this headline">¶</a></h3>
+<p>The documentation of this class can be found <a class="reference internal" href="Clients.html#module-Clients.ChessDotComClient" title="Clients.ChessDotComClient"><code class="xref py py-class docutils literal notranslate"><span class="pre">here</span></code></a>. This client retrieves the
+opponents moves from a <a class="reference external" href="chess.com">chess.com</a> game and can play moves back. This class is made using the test software
+<a class="reference external" href="https://selenium-python.readthedocs.io/index.html">selenium</a>. In order to use this software the chrome driver needs
+to be installed on the controller. Selenium interacts with the chess.com site by locating elements by id. The software
+can then, read, click or drag these elements. Please note that changing the theme of
+the chess.com site can change the name of elements on the site and break the software. The chess.com client assumes that
+the default theme on chess.com is used and draw / resignation confirmation is turned off. This client is the most hardware
+intensive and sensitive to software changes. Starting up the chrome driver has a large overhead and logging in takes a lot
+of time. This is why the <cite>chess.com client</cite> is the only client which can be reused. The
+<a class="reference internal" href="Clients.html#Clients.ChessDotComClient.ChessDotComClient.start_new_game" title="Clients.ChessDotComClient.ChessDotComClient.start_new_game"><code class="xref py py-class docutils literal notranslate"><span class="pre">start_new_game</span></code></a> method resets the client and allows us
+to reuse the client for a new game.</p>
+</div>
+<div class="section" id="console-client">
+<h3>Console client<a class="headerlink" href="#console-client" title="Permalink to this headline">¶</a></h3>
+<p>The documentation of this class can be found <a class="reference internal" href="Clients.html#module-Clients.ConsoleClient" title="Clients.ConsoleClient"><code class="xref py py-class docutils literal notranslate"><span class="pre">here</span></code></a>. The console client is a very
+simple implementation of the client interface and is very useful for testing. This client parses moves from the console
+and prints the current board state after a move is received. The input format is <cite>&lt;from_square&gt;&lt;to_square&gt;</cite> ie,
+<cite>e2e4</cite> plays (pawn) from <cite>e2</cite> to <cite>e4</cite>. Next to this the client also supports resignation (<cite>resign</cite>), draw offers
+(<cite>draw &lt;from_square&gt;&lt;to_square&gt;</cite>) and promotions (<cite>e7e8n</cite>, promotes the e pawn to a knight). Note that draw offers are
+only returned while playing a move. You cannot offer a draw during your or your opponents turn.</p>
+</div>
+<div class="section" id="engine-client">
+<h3>Engine client<a class="headerlink" href="#engine-client" title="Permalink to this headline">¶</a></h3>
+<p>The documentation of this class can be found <a class="reference internal" href="Clients.html#module-Clients.EngineClient" title="Clients.EngineClient"><code class="xref py py-class docutils literal notranslate"><span class="pre">here</span></code></a>. This client accepts a path to the
+a chess engine as input. The Smart chess board project relies on the
+<a class="reference external" href="https://python-chess.readthedocs.io/en/latest/">chess</a> library. This library contains built in engine support.
+Because of this the implementation of this client is trivial. The strength of the engine can be configured
+by setting the time the engine has to think about a move. We do not allow the engine to think during the opponents turn.</p>
+</div>
+<div class="section" id="hardware-client">
+<h3>Hardware client<a class="headerlink" href="#hardware-client" title="Permalink to this headline">¶</a></h3>
+<p>The documentation of this class can be found <a class="reference internal" href="Clients.html#module-Clients.HardwareClient" title="Clients.HardwareClient"><code class="xref py py-class docutils literal notranslate"><span class="pre">here</span></code></a>. This client connects the project
+to the hardware. The hardware is controlled using the <a class="reference internal" href="Hardware.html#module-Hardware.HardwareInterface" title="Hardware.HardwareInterface"><code class="xref py py-class docutils literal notranslate"><span class="pre">Hardware.HardwareInterface</span></code></a> interface. Internally the
+hardware client creates a new thread to control the hardware. Because of the complexity of this class experience using
+threading is required to modify it. In this section I will assume you are familiar with threading and mutex locks. Note
+that unit tests are available in the tests directory.</p>
+<p>In this client we distinguish between two threads. The <cite>main</cite> thread and the <cite>hardware</cite> thread. The <cite>main</cite> thread is the
+thread runs the main method. This thread calls the methods from the <a class="reference internal" href="main.html#module-Clients.ClientInterface" title="Clients.ClientInterface"><code class="xref py py-class docutils literal notranslate"><span class="pre">Clients.ClientInterface</span></code></a>. The <cite>main</cite> thread
+communicates with the <cite>hardware</cite> thread using the private variables of the hardware client. In order to ensure thread
+safety mutex locks are used. In order to prevent deadlocks any tread can only control at most one lock at every time. The
+second thread is the <cite>hardware</cite> thread. This thread is responsible for controlling the hardware. In order to ensure
+thread safety the <cite>main</cite> thread will never call the hardware interface or interact with the hardware in any another way.
+The hardware <cite>thread</cite> can be in 3 states:</p>
+<p>1. Detect player move: The state of the chess board is stored in the <cite>_board</cite> variable. From this state we can predict
+which squares should be occupied and which squares should be empty. We mark every square on the hardware which is not in
+the expected state. If exactly two squares are not in the expected state then we try to see if this represents a valid
+move. In this is the case then we place the new move in the <cite>_input_playResult</cite> variable and we move to state 2.
+In order to ensure thread safety the deep copy method is used to prevent pointers to shared memory leaving the hardware
+client.</p>
+<p>2. Wait opponent move: In this state we wait until the <cite>set_move</cite> method is called. Next to this we highlight
+differences between the expected occupancy of the board and the actual occupancy of the hardware. Note that this might
+include part of the last move. As an example, let the hardware client be white and play a move which captures a black
+piece. This move is played by first removing the white piece and then removing the black piece. This results in two
+squares with a different occupancy so the move is detected. However the white piece still needs to be placed down. That
+is highlighted in this state. The expected occupancy is calculated by the
+<a class="reference external" href="https://python-chess.readthedocs.io/en/latest/">chess</a> library. Once the <cite>set_move</cite> method is called by the main thread
+we move from state 2 to state 3.</p>
+<p>3. Play opponent move: In this state we wait until the user plays the opponents move on the hardware. The
+<cite>set_move</cite> method uses deep copy to places the opponent move in the <cite>_output_playResult</cite> variable. Using the
+<a class="reference external" href="https://python-chess.readthedocs.io/en/latest/">chess</a> library we find the new expected occupancy. Once again we
+highlight the difference between the expected occupancy and the actual occupancy. Once the user has played the move and
+the occupancies are the same we move back to state 1.</p>
+<p>The <cite>hardware</cite> thread keeps looping between these states until the <cite>__del__</cite> method is called. The <cite>__del__</cite> method terminates
+the <cite>hardware</cite> thread. Once the hardware thread has terminated then the hardware client can be destroyed.</p>
+</div>
+</div>
+<div class="section" id="hardware-module">
+<h2>Hardware module<a class="headerlink" href="#hardware-module" title="Permalink to this headline">¶</a></h2>
+<p>The last module is the hardware module. The documentation of the Hardware module can be found here
+<a class="reference internal" href="Hardware.html"><span class="doc">Hardware package</span></a>. The Hardware module has already been covered in great detail on
+<a class="reference internal" href="InterfaceImplementation.html"><span class="doc">this page</span></a>. To summarise the module contains 3 files:</p>
+<p>1. <a class="reference internal" href="Hardware.html#module-Hardware.HardwareInterface" title="Hardware.HardwareInterface"><code class="xref py py-class docutils literal notranslate"><span class="pre">HardwareInterface</span></code></a>: This method defines the interface of the Hardware. This allows
+us to use the <a class="reference internal" href="Clients.html#module-Clients.HardwareClient" title="Clients.HardwareClient"><code class="xref py py-class docutils literal notranslate"><span class="pre">Clients.HardwareClient</span></code></a> with any hardware setup.</p>
+<p>2. <a class="reference internal" href="Hardware.html#module-Hardware.HardwareImplementation" title="Hardware.HardwareImplementation"><code class="xref py py-class docutils literal notranslate"><span class="pre">HardwareImplementation</span></code></a>: This class is implements the hardware interface
+and is specific to hardware setup.</p>
+<p>3. <a class="reference internal" href="Hardware.html#module-Hardware.HardwareImplementation" title="Hardware.HardwareImplementation"><code class="xref py py-class docutils literal notranslate"><span class="pre">HardwareImplementation</span></code></a>: This module contains useful resources to simplify
+the hardware implementation.</p>
+</div>
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Software structure</a><ul>
+<li><a class="reference internal" href="#main-module">Main module</a></li>
+<li><a class="reference internal" href="#gui-module">GUI module</a></li>
+<li><a class="reference internal" href="#clients-module">Clients module</a><ul>
+<li><a class="reference internal" href="#client-interface">Client interface</a></li>
+<li><a class="reference internal" href="#chess-com-client">Chess.com client</a></li>
+<li><a class="reference internal" href="#console-client">Console client</a></li>
+<li><a class="reference internal" href="#engine-client">Engine client</a></li>
+<li><a class="reference internal" href="#hardware-client">Hardware client</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#hardware-module">Hardware module</a></li>
+</ul>
+</li>
+</ul>
+
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/Software.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Smart Chess Board 1.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Software structure</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021, Wouter Schols.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.4.
+    </div>
+  </body>
+</html>

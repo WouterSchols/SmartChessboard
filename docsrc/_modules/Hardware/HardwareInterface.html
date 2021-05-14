@@ -1,0 +1,140 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hardware.HardwareInterface &#8212; Smart Chess Board 1.0 documentation</title>
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/classic.css" type="text/css" />
+    
+    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">Smart Chess Board 1.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Hardware.HardwareInterface</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for Hardware.HardwareInterface</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">abc</span> <span class="kn">import</span> <span class="n">ABC</span><span class="p">,</span> <span class="n">abstractmethod</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span>
+<span class="kn">from</span> <span class="nn">enum</span> <span class="kn">import</span> <span class="n">Enum</span>
+<span class="kn">import</span> <span class="nn">chess</span>
+
+
+<div class="viewcode-block" id="Offer"><a class="viewcode-back" href="../../Hardware.html#Hardware.HardwareInterface.Offer">[docs]</a><span class="k">class</span> <span class="nc">Offer</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
+    <span class="n">CONTINUE</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">DRAW</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">RESIGN</span> <span class="o">=</span> <span class="mi">2</span></div>
+
+
+<div class="viewcode-block" id="HardwareInterface"><a class="viewcode-back" href="../../InterfaceImplementation.html#Hardware.HardwareInterface.HardwareInterface">[docs]</a><span class="k">class</span> <span class="nc">HardwareInterface</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Defines interface to the hardware &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="HardwareInterface.mark_squares"><a class="viewcode-back" href="../../InterfaceImplementation.html#Hardware.HardwareInterface.HardwareInterface.mark_squares">[docs]</a>    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">mark_squares</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">squares</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">bool</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot; Marks squares on the chessboard where squares is an 8x8 matrix implemented as a 2s list</span>
+
+<span class="sd">        Note that squares are mapped as squares[file][rank] ie. a1 = squares[0][0], a2 = squares[0][1],</span>
+<span class="sd">        b1 = squares[1][0] and h8 = squares[7][7]</span>
+
+<span class="sd">        :param squares: 8x8 matrix of squares to mark on the chessboard where square [file][rank] \</span>
+<span class="sd">        is marked if square[file][rank] == TRUE</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="HardwareInterface.get_occupancy"><a class="viewcode-back" href="../../InterfaceImplementation.html#Hardware.HardwareInterface.HardwareInterface.get_occupancy">[docs]</a>    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">get_occupancy</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">bool</span><span class="p">]]:</span>
+        <span class="sd">&quot;&quot;&quot; Returns all occupied squares as 8x8 matrix implemented as a 2d list</span>
+
+<span class="sd">        Note that squares are mapped as squares[file][rank] so if square a2 is occupied then</span>
+<span class="sd">        get_occupancy[0][1] equals TRUE</span>
+<span class="sd">        :return: 8x8 matrix with all occupied squares on the chessboard</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="HardwareInterface.promotion_piece"><a class="viewcode-back" href="../../InterfaceImplementation.html#Hardware.HardwareInterface.HardwareInterface.promotion_piece">[docs]</a>    <span class="k">def</span> <span class="nf">promotion_piece</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chess</span><span class="o">.</span><span class="n">Piece</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot; Which piece to promote to</span>
+
+<span class="sd">        :return: Piece to promote to if not reimplemented returns queen</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">chess</span><span class="o">.</span><span class="n">QUEEN</span></div>
+
+<div class="viewcode-block" id="HardwareInterface.game_end_offers"><a class="viewcode-back" href="../../InterfaceImplementation.html#Hardware.HardwareInterface.HardwareInterface.game_end_offers">[docs]</a>    <span class="k">def</span> <span class="nf">game_end_offers</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Offer</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot; Returns continue, draw or return offers</span>
+
+<span class="sd">        :return: Always returns continue</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">Offer</span><span class="o">.</span><span class="n">CONTINUE</span></div>
+
+<div class="viewcode-block" id="HardwareInterface.display"><a class="viewcode-back" href="../../InterfaceImplementation.html#Hardware.HardwareInterface.HardwareInterface.display">[docs]</a>    <span class="k">def</span> <span class="nf">display</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">txt</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Displays text string on hardware</span>
+
+<span class="sd">        :param txt: text to display on hardware</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">txt</span><span class="p">)</span>
+        <span class="k">pass</span></div></div>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">Smart Chess Board 1.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Hardware.HardwareInterface</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021, Wouter Schols.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.4.
+    </div>
+  </body>
+</html>

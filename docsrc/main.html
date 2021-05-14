@@ -1,0 +1,151 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>main module &#8212; Smart Chess Board 1.0 documentation</title>
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css" />
+    
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Smart Chess Board 1.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">main module</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="module-main">
+<span id="main-module"></span><h1>main module<a class="headerlink" href="#module-main" title="Permalink to this headline">¶</a></h1>
+<dl class="py function">
+<dt id="main.play">
+<code class="sig-prename descclassname"><span class="pre">main.</span></code><code class="sig-name descname"><span class="pre">play</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">white</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#Clients.ClientInterface.ClientInterface" title="Clients.ClientInterface.ClientInterface"><span class="pre">Clients.ClientInterface.ClientInterface</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">black</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#Clients.ClientInterface.ClientInterface" title="Clients.ClientInterface.ClientInterface"><span class="pre">Clients.ClientInterface.ClientInterface</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/main.html#play"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#main.play" title="Permalink to this definition">¶</a></dt>
+<dd><p>Starts a game between two clients reuses a client if possible to start a new game</p>
+</dd></dl>
+
+<span class="target" id="module-Clients.ClientInterface"></span><dl class="py class">
+<dt id="Clients.ClientInterface.ClientInterface">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">Clients.ClientInterface.</span></code><code class="sig-name descname"><span class="pre">ClientInterface</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">color</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Clients/ClientInterface.html#ClientInterface"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Clients.ClientInterface.ClientInterface" title="Permalink to this definition">¶</a></dt>
+<dd><p>Defines interface of a client</p>
+<dl class="py method">
+<dt id="Clients.ClientInterface.ClientInterface.get_move">
+<em class="property"><span class="pre">abstract</span> </em><code class="sig-name descname"><span class="pre">get_move</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">chess.engine.PlayResult</span><a class="reference internal" href="_modules/Clients/ClientInterface.html#ClientInterface.get_move"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Clients.ClientInterface.ClientInterface.get_move" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns next move from client</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>next move played by the client in the normal engine output format</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="Clients.ClientInterface.ClientInterface.set_move">
+<em class="property"><span class="pre">abstract</span> </em><code class="sig-name descname"><span class="pre">set_move</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">move</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">chess.engine.PlayResult</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="_modules/Clients/ClientInterface.html#ClientInterface.set_move"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Clients.ClientInterface.ClientInterface.set_move" title="Permalink to this definition">¶</a></dt>
+<dd><p>Report new move to client</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>move</strong> – reports move of opponent to client using normal engine output format</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="Clients.ClientInterface.ClientInterface.game_is_over">
+<code class="sig-name descname"><span class="pre">game_is_over</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">bool</span><a class="reference internal" href="_modules/Clients/ClientInterface.html#ClientInterface.game_is_over"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Clients.ClientInterface.ClientInterface.game_is_over" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks if game is over</p>
+<p>Implementations of PlayerClientInterface can choose to extend this method to display the result,
+accept resignation or accept draw offers</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Returns True iff game is over</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="Clients.ClientInterface.ClientInterface.synchronize_clocks">
+<code class="sig-name descname"><span class="pre">synchronize_clocks</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">clock</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">datetime.timedelta</span><span class="p"><span class="pre">,</span> </span><span class="pre">datetime.timedelta</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">datetime.timedelta</span><span class="p"><span class="pre">,</span> </span><span class="pre">datetime.timedelta</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><a class="reference internal" href="_modules/Clients/ClientInterface.html#ClientInterface.synchronize_clocks"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Clients.ClientInterface.ClientInterface.synchronize_clocks" title="Permalink to this definition">¶</a></dt>
+<dd><p>Synchronize clocks between two clients</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>clock</strong> – Input clock from the other client (white time, black time)</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>return clock from current client (white time, black time) if available</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/main.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Smart Chess Board 1.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">main module</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021, Wouter Schols.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.4.
+    </div>
+  </body>
+</html>
