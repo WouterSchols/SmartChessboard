@@ -10,7 +10,7 @@ The framework contains out of the box functionality which allows players to conn
 `chess.com <chess.com>`_ or to play against an engine. The software works with any hardware setup and is accessible to
 people of any skill level. No software development or Python experience is needed. Next to this the project is easily
 extendable so new ideas can easily be implemented. Extensive software documentation can be found on
-`https://wouterschols.github.io/SmartChessboard`_. This documentation will guide you trough all steps needed to connect
+https://wouterschols.github.io/SmartChessboard. This documentation will guide you trough all steps needed to connect
 your chessboard. Next to this the inner structure of software is also well documented. The documentation of the inner
 software is only needed if you are planning to implement new features. If you implement any features worth sharing
 please share them with the community.
