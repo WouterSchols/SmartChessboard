@@ -1,0 +1,313 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Interface Implementation &#8212; Smart Chess Board 1.0 documentation</title>
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css" />
+    
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Smart Chess Board 1.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Interface Implementation</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="interface-implementation">
+<h1>Interface Implementation<a class="headerlink" href="#interface-implementation" title="Permalink to this headline">¶</a></h1>
+<p>In order to use the chessboard the python code needs to be able to communicate with the hardware. Since every project
+will use a slightly differently hardware setup we need to configure the software. The configuration is done by implementing the
+interface <a class="reference internal" href="Hardware.html#Hardware.HardwareInterface.HardwareInterface" title="Hardware.HardwareInterface.HardwareInterface"><code class="xref py py-class docutils literal notranslate"><span class="pre">Hardware.HardwareInterface.HardwareInterface</span></code></a> in the python file <strong>src/Hardware/HardwareImplementation.py/</strong>
+There is already a complete and extensive implementation in this file which can be used as an example. Note that functional
+hardware tests are available in the <cite>tests</cite> directory.</p>
+<div class="section" id="hardware-interface">
+<h2>Hardware interface<a class="headerlink" href="#hardware-interface" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt>
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">Hardware.HardwareInterface.</span></code><code class="sig-name descname"><span class="pre">HardwareInterface</span></code><a class="reference internal" href="_modules/Hardware/HardwareInterface.html#HardwareInterface"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Defines interface to the hardware</p>
+<dl class="py method">
+<dt>
+<em class="property"><span class="pre">abstract</span> </em><code class="sig-name descname"><span class="pre">mark_squares</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">squares</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">bool</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="_modules/Hardware/HardwareInterface.html#HardwareInterface.mark_squares"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Marks squares on the chessboard where squares is an 8x8 matrix implemented as a 2s list</p>
+<p>Note that squares are mapped as squares[file][rank] ie. a1 = squares[0][0], a2 = squares[0][1],
+b1 = squares[1][0] and h8 = squares[7][7]</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>squares</strong> – 8x8 matrix of squares to mark on the chessboard where square [file][rank]         is marked if square[file][rank] == TRUE</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt>
+<em class="property"><span class="pre">abstract</span> </em><code class="sig-name descname"><span class="pre">get_occupancy</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">bool</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><a class="reference internal" href="_modules/Hardware/HardwareInterface.html#HardwareInterface.get_occupancy"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Returns all occupied squares as 8x8 matrix implemented as a 2d list</p>
+<p>Note that squares are mapped as squares[file][rank] so if square a2 is occupied then
+get_occupancy[0][1] equals TRUE
+:return: 8x8 matrix with all occupied squares on the chessboard</p>
+</dd></dl>
+
+<dl class="py method">
+<dt>
+<code class="sig-name descname"><span class="pre">promotion_piece</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">chess.Piece</span><a class="reference internal" href="_modules/Hardware/HardwareInterface.html#HardwareInterface.promotion_piece"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Which piece to promote to</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Piece to promote to if not reimplemented returns queen</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt>
+<code class="sig-name descname"><span class="pre">game_end_offers</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="Hardware.html#Hardware.HardwareInterface.Offer" title="Hardware.HardwareInterface.Offer"><span class="pre">Hardware.HardwareInterface.Offer</span></a><a class="reference internal" href="_modules/Hardware/HardwareInterface.html#HardwareInterface.game_end_offers"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Returns continue, draw or return offers</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Always returns continue</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt>
+<code class="sig-name descname"><span class="pre">display</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">txt</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Hardware/HardwareInterface.html#HardwareInterface.display"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Displays text string on hardware</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>txt</strong> – text to display on hardware</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<p>The methods <strong>mark_squares</strong> and <strong>get_occupancy</strong> are abstract methods. This means that the methods are important
+and always need to be implemented. The method <strong>mark_squares</strong> is used to mark the squares on the board and the
+<strong>get_occupancy</strong> method returns all occupied squares. The other methods are all optional and do not need to be implemented.
+A minimal example implementation can be found below. This implementation uses a very simple hardware setup and only marks
+one LED per square. The hardware uses one HTK16K33 and 4 MCP23017 each connected to 16 reed switches. This is similar
+to the hardware used in the original project. More information about the hardware can be found
+<a class="reference internal" href="HardwareDescription.html"><span class="doc">here</span></a>.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">chess</span>
+<span class="kn">import</span> <span class="nn">board</span>
+<span class="kn">import</span> <span class="nn">busio</span>
+<span class="kn">import</span> <span class="nn">digitalio</span>
+<span class="kn">from</span> <span class="nn">adafruit_ht16k33</span> <span class="kn">import</span> <span class="n">matrix</span>
+<span class="kn">from</span> <span class="nn">adafruit_mcp230xx.mcp23017</span> <span class="kn">import</span> <span class="n">MCP23017</span>
+
+<span class="k">class</span> <span class="nc">HardwareImplementation</span><span class="p">(</span><span class="n">HardwareInterface</span><span class="o">.</span><span class="n">HardwareInterface</span><span class="p">):</span>
+
+<span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Set up hardware connection &quot;&quot;&quot;</span>
+    <span class="n">i2c</span> <span class="o">=</span> <span class="n">busio</span><span class="o">.</span><span class="n">I2C</span><span class="p">(</span><span class="n">board</span><span class="o">.</span><span class="n">SCL</span><span class="p">,</span> <span class="n">board</span><span class="o">.</span><span class="n">SDA</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_led</span> <span class="o">=</span> <span class="n">matrix</span><span class="o">.</span><span class="n">MatrixBackpack16x8</span><span class="p">(</span><span class="n">i2x</span><span class="p">)</span>
+    <span class="n">mcp</span> <span class="o">=</span> <span class="p">[</span><span class="n">MCP23017</span><span class="p">(</span><span class="n">i2c</span><span class="p">,</span> <span class="n">address</span><span class="o">=</span><span class="mh">0x20</span> <span class="o">+</span> <span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">)]</span>
+
+    <span class="c1"># Initialize reed matrix</span>
+    <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">8</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">rank</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">8</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_board_reed</span><span class="p">[</span><span class="n">file</span><span class="p">][</span><span class="n">rank</span><span class="p">]</span> <span class="o">=</span> <span class="n">mcp</span><span class="p">[</span><span class="n">rank</span> <span class="o">//</span> <span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">get_pin</span><span class="p">(</span><span class="n">pin_id</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_board_reed</span><span class="p">[</span><span class="n">file</span><span class="p">][</span><span class="n">rank</span><span class="p">]</span><span class="o">.</span><span class="n">direction</span> <span class="o">=</span> <span class="n">digitalio</span><span class="o">.</span><span class="n">Direction</span><span class="o">.</span><span class="n">INPUT</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_board_reed</span><span class="p">[</span><span class="n">file</span><span class="p">][</span><span class="n">rank</span><span class="p">]</span><span class="o">.</span><span class="n">pull</span> <span class="o">=</span> <span class="n">digitalio</span><span class="o">.</span><span class="n">Pull</span><span class="o">.</span><span class="n">UP</span>
+
+<span class="k">def</span> <span class="nf">mark_squares</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">squares</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">8</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">rank</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">8</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_led</span><span class="p">[</span><span class="n">file</span><span class="p">][</span><span class="n">rank</span><span class="p">]</span> <span class="o">=</span> <span class="n">squares</span><span class="p">[</span><span class="n">file</span><span class="p">][</span><span class="n">rank</span><span class="p">]</span>
+
+<span class="k">def</span> <span class="nf">get_occupancy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_board_reed</span><span class="p">:</span>
+        <span class="n">result_file</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">square</span> <span class="ow">in</span> <span class="n">file</span><span class="p">:</span>
+           <span class="n">result_file</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="ow">not</span> <span class="n">square</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+        <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">result_file</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">result</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="advanced-implementation-resources">
+<h2>Advanced implementation resources<a class="headerlink" href="#advanced-implementation-resources" title="Permalink to this headline">¶</a></h2>
+<p>In the git repository a complete implementation of the interface can be found. This class
+<code class="xref py py-class docutils literal notranslate"><span class="pre">Hardware.HardwareInterface.HardwareImplementation</span></code> not only implements all optional methods it also contains so
+powerful ideas to improve the quality of the chess board. These ideas are more complex but understanding them can
+greatly improve your software. How these ideas should be used depends on the hardware setup used. The original hardware
+is described in the <a class="reference internal" href="HardwareDescription.html"><span class="doc">hardware section</span></a>.</p>
+<p>The hardware uses an 8 by 16 LED matrix driver and one MCP23017 to create a 9 by 9 LED matrix. We want to highlight a square
+by lighting up the 4 LEDs at the corners of a square. This adds a lot of complexity to the code which can cause errors.
+This complexity can be managed by wrapping the LEDs in a a new class. Our other code can now mark squares using that new
+class and all difficult code will be contained in the LED class.  In the original implementation the class
+<code class="xref py py-class docutils literal notranslate"><span class="pre">Hardware.HardwareInterface.LedWrapper</span></code> hides the complexity of the LEDs.
+This class just takes an 8 by 8 matrix of squares as input and turns on the correct LEDs. Outside the class we don’t
+need to keep in mind how the LEDs are connected and which LEDs should be turned on or off.</p>
+<p>Creating new classes is nice and reduces the complexity but the really important feature from the original code is the
+<a class="reference internal" href="Hardware.html#module-Hardware.SafeDecorator" title="Hardware.SafeDecorator"><code class="xref py py-class docutils literal notranslate"><span class="pre">Hardware.SafeDecorator</span></code></a> module. If your hardware uses the I2C bus then I strongly recommend using the safe
+decorator.  The safe decorator is a complex piece of software which uses some advanced python features which new users
+are unlikely to be familiar with. I strongly advice that new users thoroughly read this section.</p>
+<p>In order to understand the safe decorator we first need to understand the problem it solves. The software communicates
+with the hardware over this I2C bus. In practice this bus is often noisy. This means that certain messages from and to
+the hardware might become corrupted. When a message becomes corrupted then the hardware will give an error.
+If we don’t do anything then this error will crash the software. In practice we know that hardware errors are almost always
+caused by this noise. If the error is caused by noise then we just resend the message and ignore the error. This is
+what the safe decorator does. As an example lets say that we have a hardware device <em>device</em> and we can send a message
+<em>m</em> to it over the i2C bus using a <em>send</em> method. This would gives us the following simple python code.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">device</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Unfortunately, this code would crash if the message became corrupted. What we would actually like to do is:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">tries</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">device</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
+        <span class="k">break</span>
+    <span class="k">except</span> <span class="ne">OSError</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">tries</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="n">tries</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span>
+</pre></div>
+</div>
+<p>This code tries to send the message <em>m</em> and it will continue normally after it has succeeded. However if an <em>OSError</em> is
+triggered then the code will <em>catch</em> (stop) the error and try to resend the message. If the error was just caused by
+some noise then it will almost always succeed within 3 tries. However, if there is another problem then resending the
+message will not resolve the issue. In this case we always get an error and we can only <em>throw</em> the error. This will stop
+the program and will show the user the error.</p>
+<p>This code is great and all but it is also very large. If we write this code for every operation then the python code will
+become massive and unreadable. Here is where the safe decorator comes in. The following code uses the
+<a class="reference internal" href="Hardware.html#module-Hardware.SafeDecorator" title="Hardware.SafeDecorator"><code class="xref py py-class docutils literal notranslate"><span class="pre">Hardware.SafeDecorator</span></code></a> to do the same but is way more compact.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">SafeDecorator</span><span class="o">.</span><span class="n">perform_safe</span><span class="p">(</span><span class="n">device</span><span class="o">.</span><span class="n">send</span><span class="p">)(</span><span class="n">m</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The <em>perform_safe</em> function accepts a function as input and creates a function that will perform the input function safely,
+ie 3 attempts will be made to execute the function. Next to this the output function accepts the
+same input and returns the same output as the input function. This is great because we can now easily use the I2C bus
+without worrying about noise. Note that the input of <em>perform_safe</em> needs to be a function. Sometimes you will want to
+perform an operation which does not look like a function. Most python operations are secretly functions. As an example
+lets say that we don’t have the <em>device.send</em> function but instead need to set some variable, ie:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">device</span><span class="o">.</span><span class="n">message</span> <span class="o">=</span> <span class="n">m</span>
+</pre></div>
+</div>
+<p>This does not look like a function but it actually is a function. The following line of code is exactly the same.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nb">setattr</span><span class="p">(</span><span class="n">device</span><span class="p">,</span> <span class="s1">&#39;message&#39;</span><span class="p">,</span> <span class="n">m</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>So we can use the safe decorator to perform the assignment safely:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">perform_safe</span><span class="p">(</span><span class="nb">setattr</span><span class="p">)(</span><span class="n">device</span><span class="p">,</span> <span class="s1">&#39;message&#39;</span><span class="p">,</span> <span class="n">m</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This pattern is commonly used in <code class="xref py py-class docutils literal notranslate"><span class="pre">Hardware.HardwareInterface.HardwareImplementation</span></code>. There is always an option to
+convert some line of python code to a function. If you encounter a problem finding the right function I would advice looking
+at <em>lambdas</em>. Lambas are outside of the scope of this documentation but commonly used in the project.</p>
+<p>Lastly there is one more feature in the <a class="reference internal" href="Hardware.html#module-Hardware.SafeDecorator" title="Hardware.SafeDecorator"><code class="xref py py-class docutils literal notranslate"><span class="pre">Hardware.SafeDecorator</span></code></a> module which can be useful. This is the
+<a class="reference internal" href="Hardware.html#Hardware.SafeDecorator.perform_safe_factory" title="Hardware.SafeDecorator.perform_safe_factory"><code class="xref py py-class docutils literal notranslate"><span class="pre">Hardware.SafeDecorator.perform_safe_factory</span></code></a>. This method allows you to slightly modify the safe decorator.
+In the original hardware a device TCA9548a is used. This is a device which limits the noise on the I2C bus however there is one
+problem with this device. There is a bug in the device which requires you to reset the device after every error.
+So we want to run the following code to safely perform an operation:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">device</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
+<span class="n">tries</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">device</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
+        <span class="k">break</span>
+    <span class="k">except</span> <span class="ne">OSError</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">tries</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="p">:</span>
+        <span class="n">TCA9548a</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span> <span class="c1"># new</span>
+        <span class="n">tries</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span>
+</pre></div>
+</div>
+<p>This is where the factory comes in. The factory takes one reset function as input and then returns a safe decorator which
+uses the reset function after every error. This would give us the following code (the decorator can be reused):</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">decorator</span> <span class="o">=</span> <span class="n">perform_safe_factory</span><span class="p">(</span><span class="n">TCA9548a</span><span class="o">.</span><span class="n">reset</span><span class="p">)</span> <span class="c1"># Note no brackets after TCA9548a.reset</span>
+<span class="n">decorator</span><span class="p">(</span><span class="n">device</span><span class="o">.</span><span class="n">send</span><span class="p">)(</span><span class="n">m</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>New python users might be unfamiliar with functions that take functions as input and return functions as output but
+I hope the explanation is clear enough to start using them. The complete documentation of the <a class="reference internal" href="Hardware.html#module-Hardware.SafeDecorator" title="Hardware.SafeDecorator"><code class="xref py py-class docutils literal notranslate"><span class="pre">Hardware.SafeDecorator</span></code></a> can
+be found here.</p>
+</div>
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Interface Implementation</a><ul>
+<li><a class="reference internal" href="#hardware-interface">Hardware interface</a></li>
+<li><a class="reference internal" href="#advanced-implementation-resources">Advanced implementation resources</a></li>
+</ul>
+</li>
+</ul>
+
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/InterfaceImplementation.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Smart Chess Board 1.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Interface Implementation</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021, Wouter Schols.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.4.
+    </div>
+  </body>
+</html>

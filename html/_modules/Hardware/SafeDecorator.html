@@ -1,0 +1,129 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hardware.SafeDecorator &#8212; Smart Chess Board 1.0 documentation</title>
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/classic.css" type="text/css" />
+    
+    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">Smart Chess Board 1.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Hardware.SafeDecorator</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for Hardware.SafeDecorator</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Any</span>
+
+
+<div class="viewcode-block" id="perform_safe_factory"><a class="viewcode-back" href="../../Hardware.html#Hardware.SafeDecorator.perform_safe_factory">[docs]</a><span class="k">def</span> <span class="nf">perform_safe_factory</span><span class="p">(</span><span class="n">reset</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="kc">None</span><span class="p">],</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">max_tries</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">5</span><span class="p">)</span> <span class="o">-&gt;</span> \
+        <span class="n">Callable</span><span class="p">[[</span><span class="n">Callable</span><span class="p">[[</span><span class="n">Any</span><span class="p">],</span> <span class="n">Any</span><span class="p">]],</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Any</span><span class="p">],</span> <span class="n">Any</span><span class="p">]]:</span>
+    <span class="sd">&quot;&quot;&quot; Factory to create a decorator to perform an i2c operation safely</span>
+
+<span class="sd">    This factory returns the perform_safe decorator. This decorator will try to execute a function until it succeeds</span>
+<span class="sd">    or until max_tries have failed. If a tca is supplied then the factory will also reset the tca lock</span>
+<span class="sd">    after every SOError.</span>
+
+<span class="sd">    :param reset: Any other function to execute when recovering from an error</span>
+<span class="sd">    :param max_tries: Maximum amount of times that an operation will be attempted</span>
+<span class="sd">    :return: The decorator perform safe</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">perform_safe</span><span class="p">(</span><span class="n">func</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Any</span><span class="p">],</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Any</span><span class="p">],</span> <span class="n">Any</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;&quot; Tries to execute func until no OSError is thrown or TRIES attempts have failed</span>
+
+<span class="sd">        The i2c buss is sensitive to noise. Corrupted messages can trigger an OSError on the buss device.</span>
+<span class="sd">        We can recover from this error by simply resending the message until it arrives correctly. This method accepts</span>
+<span class="sd">        a function func which could trigger an OSError which would cause the program to fail.</span>
+<span class="sd">        We can easily recover from this error by retrying &#39;func&#39; if the error is cause by noise. The perform</span>
+<span class="sd">        safe decorator makes sure that an error is only trow if the operation fails max_tries times. Because of an</span>
+<span class="sd">        error in the adafruit libraries the tca can soft lock after an exception. Resetting the lock to false after</span>
+<span class="sd">        an exception prevents the errors</span>
+
+<span class="sd">        :param func: function to be executed</span>
+<span class="sd">        :return: function which executes func until it either succeeds or max_tries attempts have failed</span>
+<span class="sd">        :rtype: Same as func</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">def</span> <span class="nf">safe_wrapper</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+            <span class="n">tries</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">OSError</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">tries</span> <span class="o">&lt;</span> <span class="n">max_tries</span><span class="p">:</span>
+                        <span class="n">tries</span> <span class="o">+=</span> <span class="mi">1</span>
+                        <span class="k">if</span> <span class="n">reset</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                            <span class="n">reset</span><span class="p">()</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="k">raise</span>
+        <span class="k">return</span> <span class="n">safe_wrapper</span>
+    <span class="k">return</span> <span class="n">perform_safe</span></div>
+
+
+<span class="n">perform_safe</span> <span class="o">=</span> <span class="n">perform_safe_factory</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">Smart Chess Board 1.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Hardware.SafeDecorator</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021, Wouter Schols.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.4.
+    </div>
+  </body>
+</html>
