@@ -9,6 +9,7 @@ class EngineClient(ClientInterface.ClientInterface):
 
     def __init__(self, color: chess.Color, path: str, move_time=0.1):
         """ Creates engine, binary should be at BinaryDependencies/Engine/stockfish.exe
+
         :param color: Color to initialize the client
         :param path: The path to the engine
         :param move_time: The amount of time the engine has to move

@@ -13,7 +13,7 @@ SLEEP_TIME = 0.5  # Time to sleep after every scan in seconds
 
 
 class HardwareClient(ClientInterface.ClientInterface):
-    """ Interface to Hardware chessboard"""
+    """ Interface to Hardware chessboard """
 
     # Board state
     _board_lock: Lock  # Required to access _board
@@ -37,6 +37,7 @@ class HardwareClient(ClientInterface.ClientInterface):
 
     def __init__(self, color: chess.Color):
         """ Creates client and starts thread to control hardware chessboard
+
         :param color: Weather the client is black or white
         """
         super().__init__(color)
@@ -67,6 +68,7 @@ class HardwareClient(ClientInterface.ClientInterface):
 
     def get_move(self) -> chess.engine.PlayResult:
         """ Returns next move from client
+
         :returns: next move played by the client in the normal engine output format
         """
         while True:
@@ -80,6 +82,7 @@ class HardwareClient(ClientInterface.ClientInterface):
 
     def set_move(self, move: chess.engine.PlayResult):
         """ Report new move to client
+
         :param move: reports move of opponent to client using normal engine output format
         """
         with self._time_lock:
@@ -90,7 +93,7 @@ class HardwareClient(ClientInterface.ClientInterface):
     def game_is_over(self) -> bool:
         """ Checks if the game has ended
 
-        Conditions checked
+        Conditions checked:
         1.  Checkmate
         2.  Opponent resignation
         3.  Stop flag raised
@@ -111,6 +114,7 @@ class HardwareClient(ClientInterface.ClientInterface):
     def synchronize_clocks(self, clock: Optional[Tuple[timedelta, timedelta]] = None) \
             -> Optional[Tuple[timedelta, timedelta]]:
         """ Synchronize clocks between two clients
+
         :param clock: Input clock from the other client (white time, black time)
         :return: return clock from current client (white time, black time) if available
         """
@@ -286,6 +290,7 @@ class HardwareClient(ClientInterface.ClientInterface):
 
     def _update_display(self):
         """ Writes information to the display
+
             In the first four moves the name of the players will be displayed from the metadata after that the clock
             will be displayed
         """
