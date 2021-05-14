@@ -43,7 +43,7 @@ the raspberry pi can be downloaded using the command::
     sudo apt-get install chromium-chromedriver
 
 A second client is the engine client. This client allows you to play against an engine. This client works with any installed
-engine. The most commonly used engine is `stockfish <https://stockfishchess.org/download/>`. On the Raspberry Pi the
+engine. The most commonly used engine is `stockfish <https://stockfishchess.org/download/>`_. On the Raspberry Pi the
 software can be installed using the following commands::
 
     git clone https://github.com/official-stockfish/Stockfish
