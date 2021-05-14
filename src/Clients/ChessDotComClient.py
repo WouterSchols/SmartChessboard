@@ -10,7 +10,7 @@ from Clients import ClientInterface
 
 
 class ChessDotComClient(ClientInterface.ClientInterface):
-    """ Defines interface to play on chess.com """
+    """ Defines the client to play on `chess.com <chess.com>`_ """
 
     _driver: webdriver
     color: chess.Color
@@ -41,8 +41,9 @@ class ChessDotComClient(ClientInterface.ClientInterface):
         self._driver.quit()
 
     def get_move(self) -> chess.engine.PlayResult:
-        """ Returns next move from client
-        :returns: next move played by the client in the normal engine output format
+        """ Detects client move from chess.com
+
+        :returns: next move played by the client in the engine output format
         """
         while True:
 
@@ -104,7 +105,8 @@ class ChessDotComClient(ClientInterface.ClientInterface):
                 pass
 
     def set_move(self, move: engine.PlayResult):
-        """ Report new move to client
+        """ Plays new move on chess.com
+
         :param move: reports move of opponent to client using normal engine output format
         """
         if move.move is None:
@@ -163,6 +165,7 @@ class ChessDotComClient(ClientInterface.ClientInterface):
 
     def game_is_over(self) -> bool:
         """ Checks if game is over by checking if the position is mate or the game over window is open
+
         :return: Returns True iff game is over
         """
         game_end_name = "section-container-component-light-mode-modal-content-component.modal-game-over" \
@@ -171,7 +174,8 @@ class ChessDotComClient(ClientInterface.ClientInterface):
 
     def synchronize_clocks(self, clock: Optional[Tuple[timedelta, timedelta]] = None) \
             -> Optional[Tuple[timedelta, timedelta]]:
-        """ Obtains time from chess.com if clock is running else returns input
+        """ Obtains time from chess.com if the clock is running else returns input
+
         :param clock: Input clock from the other client
         :return: return clock from current client
         """
@@ -191,10 +195,11 @@ class ChessDotComClient(ClientInterface.ClientInterface):
             return clock
 
     def start_new_game(self) -> chess.Color:
-        """ Resets the client to start a new game
+        """ Resets the client to start a new game, unique method for chessdotcom client
 
         This method can be used to start a new game using the same client. This prevents us from having to reload the
         chromedriver
+
         :return: Returns new color of client
         """
         while True:

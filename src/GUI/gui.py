@@ -7,6 +7,7 @@ from typing import Optional
 
 def create_start_screen() -> Sg.Window:
     """ Creates gui for simple start screen
+
     :return: A window with 3 buttons to select the client to start and an exit button
     """
     screen = [[Sg.Text("Select opponent:")],
@@ -17,6 +18,7 @@ def create_start_screen() -> Sg.Window:
 
 def create_engine_screen() -> Sg.Window:
     """ Creates the engine configuration screen
+
     :return: Screen with all configuration settings for the engine client
     """
     screen = [[Sg.Text("Configure Engine:")],
@@ -29,6 +31,7 @@ def create_engine_screen() -> Sg.Window:
 
 def play_console_screen() -> Sg.Window:
     """ Creates the console client configuration screen
+
     :return: Screen with all configuration settings for the console client
     """
     screen = [[Sg.Text("Player color:"), Sg.Button('White', size=(4, 1), button_color=('black', 'white'), key='color')],
@@ -38,12 +41,14 @@ def play_console_screen() -> Sg.Window:
 
 def get_opponent_from_gui() -> Optional[ClientInterface.ClientInterface]:
     """ Main GUI method which returns the client selected as opponent
+
     :return: The client to use as component or None if the GUI is closed
     """
     window = create_start_screen()
     while True:
         event, values = window.read()
         if event == Sg.WIN_CLOSED or event == "Exit":
+            window.close()
             return None
         if event == "Chess.com":
             window.close()
@@ -59,13 +64,15 @@ def get_opponent_from_gui() -> Optional[ClientInterface.ClientInterface]:
 
 def set_up_game_chessdotcom() -> ClientInterface.ClientInterface:
     """ Returns the chess.com client
-    :rtype: A chess.com client instance
+
+    :return: A chess.com client instance
     """
     return ChessDotComClient.ChessDotComClient()  # Constructor opens chrome and blocks until game is started
 
 
 def set_up_game_engine() -> Optional[ClientInterface.ClientInterface]:
     """" Opens GUI to configure the engine client
+
     :return: An instance of the engine client with the configured settings or None if the window is closed
     """
     window = create_engine_screen()
@@ -74,6 +81,7 @@ def set_up_game_engine() -> Optional[ClientInterface.ClientInterface]:
     while True:
         event, values = window.read()
         if event == Sg.WIN_CLOSED:
+            window.close()
             return None
         if event == "Cancel":
             return get_opponent_from_gui()
@@ -94,6 +102,7 @@ def set_up_game_engine() -> Optional[ClientInterface.ClientInterface]:
 
 def display_error(error: str):
     """ Displays a simple error message in a new window
+
     :param error: The message to display
     """
     screen = [[Sg.Text(error)],
@@ -107,13 +116,15 @@ def display_error(error: str):
 
 def set_up_game_console() -> Optional[ClientInterface.ClientInterface]:
     """" Opens GUI to configure the console client
+
     :return: An instance of the console client with the configured settings or None if the window is closed
     """
     window = play_console_screen()
-    color = chess.WHITE
+    color = chess.BLACK
     while True:
         event, values = window.read()
         if event == Sg.WIN_CLOSED:
+            window.close()
             return None
         if event == "Cancel":
             return get_opponent_from_gui()

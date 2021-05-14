@@ -18,6 +18,7 @@ class ClientInterface(ABC):
     @abstractmethod
     def get_move(self) -> chess.engine.PlayResult:
         """ Returns next move from client
+
         :returns: next move played by the client in the normal engine output format
         """
         pass
@@ -25,12 +26,14 @@ class ClientInterface(ABC):
     @abstractmethod
     def set_move(self, move: chess.engine.PlayResult) -> None:
         """ Report new move to client
+
         :param move: reports move of opponent to client using normal engine output format
         """
         pass
 
     def __init__(self, color: chess.Color):
         """ Initializes the client
+
         :param color: Sets color of the board
         """
         self._board = chess.Board()
@@ -42,8 +45,10 @@ class ClientInterface(ABC):
 
     def game_is_over(self) -> bool:
         """ Checks if game is over
+
         Implementations of PlayerClientInterface can choose to extend this method to display the result,
-         accept resignation or accept draw offers
+        accept resignation or accept draw offers
+
         :return: Returns True iff game is over
         """
         return self._board.is_game_over() or self._resigned
@@ -51,6 +56,7 @@ class ClientInterface(ABC):
     def synchronize_clocks(self, clock: Optional[Tuple[timedelta, timedelta]] = None) \
             -> Optional[Tuple[timedelta, timedelta]]:
         """ Synchronize clocks between two clients
+
         :param clock: Input clock from the other client (white time, black time)
         :return: return clock from current client (white time, black time) if available
         """

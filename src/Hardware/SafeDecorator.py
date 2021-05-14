@@ -14,7 +14,7 @@ def perform_safe_factory(reset: Callable[[None], None] = None, max_tries: int = 
     :return: The decorator perform safe
     """
     def perform_safe(func: Callable[[Any], Any]) -> Callable[[Any], Any]:
-        """" Tries to execute func(*args) until no OSError is thrown or TRIES attempts have failed
+        """" Tries to execute func until no OSError is thrown or TRIES attempts have failed
 
         The i2c buss is sensitive to noise. Corrupted messages can trigger an OSError on the buss device.
         We can recover from this error by simply resending the message until it arrives correctly. This method accepts
@@ -23,6 +23,7 @@ def perform_safe_factory(reset: Callable[[None], None] = None, max_tries: int = 
         safe decorator makes sure that an error is only trow if the operation fails max_tries times. Because of an
         error in the adafruit libraries the tca can soft lock after an exception. Resetting the lock to false after
         an exception prevents the errors
+
         :param func: function to be executed
         :return: function which executes func until it either succeeds or max_tries attempts have failed
         :rtype: Same as func

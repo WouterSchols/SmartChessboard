@@ -1,6 +1,6 @@
 import chess
-from Hardware import HardwareInterface, safe_decorator
-from typing import List, Any, Callable, Dict
+from Hardware import HardwareInterface, SafeDecorator
+from typing import List, Any, Callable
 import board
 import busio
 import digitalio
@@ -26,7 +26,7 @@ class HardwareImplementation(HardwareInterface.HardwareInterface):
         """
         i2c = busio.I2C(board.SCL, board.SDA)
         tca = adafruit_tca9548a.TCA9548A(i2c, address=0x71)
-        self._perform_safe = safe_decorator.perform_safe_factory(lambda: setattr(tca.i2c, '_locked', False))
+        self._perform_safe = SafeDecorator.perform_safe_factory(lambda: setattr(tca.i2c, '_locked', False))
         self._lcd = self._perform_safe(lambda: character_lcd.Character_LCD_I2C(tca[6], 16, 2, address=0x27))
         self._perform_safe(setattr)(self._lcd, "backlight", True)
 
@@ -59,31 +59,34 @@ class HardwareImplementation(HardwareInterface.HardwareInterface):
     def mark_squares(self, squares: List[List[bool]]) -> None:
         """ Marks squares on the chessboard where squares is an 8x8 matrix implemented as a 2s list
 
-        Note that squares are mapped as squares[file][rank] ie. a1 = squares[0][0], a2 = squares[0][1],
-          b1 = squares[1][0] and h8 = squares[7][7]
-        :param squares: 8x8 matrix of squares to mark on the chessboard where square [file][rank]
-            is marked if square[file][rank] == TRUE
+        Note that squares are mapped as squares[file][rank] ie. a1 = squares[0][0], a2 = squares[0][1], \
+        b1 = squares[1][0] and h8 is squares[7][7]
+
+        :param squares: 8x8 matrix of squares to mark on the chessboard where square [file][rank] \
+        is marked if square[file][rank] == TRUE
         """
         self._led_wrapper.set_squares(squares)
 
     def get_occupancy(self) -> List[List[bool]]:
         """ Returns all occupied squares as 8x8 matrix implemented as a 2d list
 
-        Note that squares are mapped as squares[file][rank] so if square a2 is occupied then
-            get_occupancy[0][1] == TRUE
+        Note that squares are mapped as squares[file][rank] so if square a2 is occupied then get_occupancy[0][1] is TRUE
+
         :return: 8x8 matrix with all occupied squares on the chessboard
         """
         result = []
         for file in self._board_reed:
             result_file = []
             for square in file:
-                result_file.append(not self._perform_safe(getattr)(square, 'value'))  # result += [not square.value]
+                result_file.append(not self._perform_safe(getattr)(square, 'value'))  # result_file += [not square.value]
             result.append(result_file)
         return result
 
     def promotion_piece(self) -> chess.Piece:
         """ Which piece to promote to
-            Reads input button to select promotion piece, writes selected piece to display and waits for confirmation
+
+        Reads input button to select promotion piece, writes selected piece to display and waits for confirmation
+
         :return: Piece to promote to
         """
         piece = chess.QUEEN
@@ -106,7 +109,9 @@ class HardwareImplementation(HardwareInterface.HardwareInterface):
 
     def game_end_offers(self) -> HardwareInterface.Offer:
         """ Returns continue, draw or return offers
-            If no button pressed returns continue, otherwise wait for confirmation
+
+        If no button pressed returns continue, otherwise wait for confirmation
+
         :return: Always returns continue
         """
         if self._perform_safe(getattr)(self._buttons[0], 'value'):
@@ -125,6 +130,7 @@ class HardwareImplementation(HardwareInterface.HardwareInterface):
 
     def display(self, txt: str):
         """ Displays text string on hardware
+
         :param txt: text to display on hardware
         """
         self._perform_safe(set_attr)(self._lcd, "message", txt)
@@ -158,11 +164,13 @@ class LedWrapper:
         """ Marks squares on the chessboard
 
         Improvement on calling clear() then marking all squires since this prevents a flickering of the LED
+
         :param squares: 8x8 matrix with the squares to be marked
         """
 
         def set_led(rank: int, file: int, val: bool):
             """ Turn LED at position rank, file on iff val
+
             :param rank: rank of LED to turn
             :param file: file of LED to turn
             :param val: turns on LED iff val is True

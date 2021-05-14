@@ -4,14 +4,15 @@ import chess.engine
 
 
 class ConsoleClient(ClientInterface.ClientInterface):
-    """ Defines commandline interface mainly for testing purposes """
+    """ Defines commandline interface client, mainly for testing purposes """
 
     def get_move(self) -> chess.engine.PlayResult:
-        """ Parses new move <from_square><to_square> or resign
+        """ Parses new move expected format <from_square><to_square> or a game end offer
 
         Prints the current position and waits for an input move.
         Input move should be in format <from_square><to_square> ie. e2e4 to move pawn to e4. The move should be
         legal in the current position
+
         :returns: Move played in engine plays format
         """
         print(self._board)
@@ -38,6 +39,7 @@ class ConsoleClient(ClientInterface.ClientInterface):
 
     def set_move(self, move: chess.engine.PlayResult):
         """ Report new move to the client
+
         :param move: opponents move in engine format, only move field is used
         """
         if not move.resigned:
