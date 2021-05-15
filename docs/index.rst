@@ -18,6 +18,18 @@ your chessboard. Next to this the inner structure of software is also well docum
 software is only needed if you are planning to implement new features. If you implement any features worth sharing
 please share them with the community.
 
+.. image:: img/front_gui.png
+   :width: 300
+   :align: center
+
+.. image:: img/engine_gui.png
+   :width: 450
+   :align: center
+
+.. image:: img/board_on.jpg
+   :width: 450
+   :align: center
+
 Project requirements
 --------------------
 The project has been designed to be usable for any hardware setup. The only requirement is that the controller (the
