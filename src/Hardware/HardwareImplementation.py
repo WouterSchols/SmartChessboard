@@ -43,7 +43,7 @@ class HardwareImplementation(HardwareInterface.HardwareInterface):
         led_input_mcp = MCP23017(tca[5], address=0x20)
         # Map output buttons
         self._buttons = []
-        for pinId in range(8, 13):
+        for pinId in range(9, 14):
             self._buttons.append(self._perform_safe(led_input_mcp.get_pin)(pinId))
             self._perform_safe(setattr)(self._buttons[-1], "direction", digitalio.Direction.INPUT)
             self._perform_safe(setattr)(self._buttons[-1], "pull", digitalio.Pull.UP)
